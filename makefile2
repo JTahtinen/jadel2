@@ -1,0 +1,21 @@
+ 
+.PHONY:
+all: wt
+	g++ -shared -D_UNICODE -DUNICODE -DWIN32 -D_WINDOWS -g -o $^.dll gdi32.dll
+
+main: winAppTest.cpp
+	g++ -c $^ -o wt.o
+	ar rcs libwt.a wt.o
+
+wt: objects
+	g++ *.cpp -c
+	
+objects: *.cpp
+	g++ -c $^
+
+%.o: %.cpp
+	g++ -c $^
+
+.PHONY:	
+clean:
+	del *.o *.exe wt.dll *.a *.lib

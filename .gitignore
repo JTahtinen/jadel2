@@ -1,0 +1,8 @@
+.vscode
+*.obj
+*.dll
+*.exp
+*.lib
+*.pdb
+*.o
+CMakeLists.txt
