@@ -5,4 +5,5 @@
 *.lib
 *.pdb
 *.o
+*.png
 CMakeLists.txt

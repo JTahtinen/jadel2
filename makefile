@@ -1,21 +1,18 @@
  
 .PHONY:
-all: wt
-	cl /c /Zi /EHsc /std:c++latest *.o wt.lib
-
-main: winAppTest.cpp
-	cl /c /Zi /EHsc /std:c++latest $^ /Fewt.lib
-	lib -out:wt.lib *.obj
-
-wt: objects
-	g++ *.cpp -c
+all: *.obj
+	cl /LD *.obj gdi32.lib user32.lib /Feexport\lib\jadel
+	copy *.h export\include\ 
 	
-objects: *.cpp
-	g++ -c $^
+jadelmain: mainobjects
+	lib -out:W:\jadel2\export\lib\jadelmain.lib main/*.obj
 
-%.o: %.cpp
-	g++ -c $^
+mainobjects:
+	cl /c /Zi /EHsc /std:c++latest main/jadelmain.cpp /Fomain/
+
+*.obj: *.cpp
+	cl /c /DJADEL_EXPORT *.cpp 
 
 .PHONY:	
 clean:
-	del *.o *.exe wt.dll *.a *.lib
+	del *.obj export\lib\jadel.* *.lib
