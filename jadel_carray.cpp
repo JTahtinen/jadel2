@@ -5,10 +5,18 @@
 
 namespace jadel
 {
-    cArray::cArray(size_t cap, size_t elemSize)
+    /*cArray::cArray(size_t cap, size_t elemSize)
         : size(0), capacity(cap), elemSize(elemSize)
     {
         data = malloc(cap * elemSize);
+    }*/
+
+    void cArray::init(size_t cap, size_t elemSize)
+    {
+        this->size = 0;
+        this->capacity = cap;
+        this->elemSize = elemSize;
+        this->data = malloc(elemSize * cap);
     }
 
     bool cArray::push(const void *elem)
@@ -91,5 +99,17 @@ namespace jadel
             return result;
         }
         return NULL;
+    }
+
+    bool cArrayInit(size_t cap, size_t elemSize, cArray* target)
+    {
+        if (!target) return false;
+        void* data = malloc(cap * elemSize);
+        if (!data) return false;
+        target->capacity = cap;
+        target->size = 0;
+        target->elemSize = elemSize;
+        target->data = data;
+        return true;
     }
 }

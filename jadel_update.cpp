@@ -17,11 +17,11 @@
 #include "jadel_memory.h"
 #include "jadel_input.h"
 #include "jadel_window.h"
+#include "jadel_endian.h"
 
 using namespace jadel;
 //extern "C" int JadelMain();
 
-Endianness jadel::endianness;
 HINSTANCE jadel::myHInstance;
 TCHAR jadel::className[] = _T("JADELClass");
 
@@ -39,21 +39,6 @@ static char keyToAscii(uint32 key)
     return 0;
 }
 
-static void determineEndianness()
-{
-    uint32 x = 0x76543210;
-    char *c = (char *)&x;
-
-    if (*c == 0x10)
-    {
-        endianness = LITTLE_ENDIAN;
-    }
-    else
-    {
-        endianness = BIG_ENDIAN;
-    }
-}
-
 LRESULT CALLBACK WndProc(
     HWND hWnd,
     UINT message,
@@ -62,6 +47,8 @@ LRESULT CALLBACK WndProc(
 
 bool JadelInit()
 {
+    determineEndianness();
+    graphicsInit();
     WNDCLASSEX wc;
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;

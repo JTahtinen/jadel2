@@ -36,10 +36,14 @@ namespace jadel
             }
         }
 
-        inline void pop()
+        inline bool pop()
         {
             if (size > 0)
+            {
                 --size;
+                return true;
+            }
+            return false;
         }
 
         inline T &ArraygetElement(size_t index)
@@ -51,6 +55,11 @@ namespace jadel
         }
 
         inline T &back()
+        {
+            return data[size - 1];
+        }
+
+        inline const T &back() const
         {
             return data[size - 1];
         }

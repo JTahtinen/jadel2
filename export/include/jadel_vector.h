@@ -2,6 +2,7 @@
 
 #include "jadel_defs.h"
 #include <string.h>
+#include <stdlib.h>
 namespace jadel
 {
     template <typename T>
@@ -10,10 +11,11 @@ namespace jadel
         T *data;
         size_t size;
         size_t capacity;
-
+/*
         Vector(size_t capacity)
-            : size(0), capacity(capacity)
-        {
+            : size(0)
+            , capacity(capacity)
+        {            
             data = (T *)malloc(sizeof(T) * capacity);
         }
 
@@ -22,9 +24,17 @@ namespace jadel
         {
         }
 
-        ~Vector()
+        /*~Vector()
         {
             free(data);
+            data = NULL;
+        }
+        */
+        
+        void freeVector()
+        {
+            free(data);
+            data = NULL;
         }
 
         bool push(const T &elem)
@@ -112,4 +122,15 @@ namespace jadel
             return result;
         }
     };
+
+    template <typename T>
+    inline bool vectorInit(size_t capacity, Vector<T>* target)
+    {
+        if (!target) return false;
+        target->data = (T*)malloc(sizeof(T) * capacity);
+        if (!target->data) return false;
+        target->capacity = capacity;
+        target->size = 0;
+        return true;
+    }
 }

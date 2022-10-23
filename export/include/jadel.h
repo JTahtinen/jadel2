@@ -21,5 +21,6 @@ extern "C" int JadelMain();
 #include "jadel_update.h"
 #include "jadel_window.h"
 #include "jadel_string.h"
+#include "jadel_endian.h"
 
 #endif

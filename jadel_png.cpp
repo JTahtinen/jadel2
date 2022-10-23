@@ -2,7 +2,7 @@
 #include "jadel_png.h"
 #include "jadel_util.h"
 #include "jadel_file.h"
-#include "jadel_update.h"
+#include "jadel_endian.h"
 #include "jadel_defs.h"
 #include "jadel_array.h"
 #include "jadel_graphics.h"
