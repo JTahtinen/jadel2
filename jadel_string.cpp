@@ -9,13 +9,24 @@ namespace jadel
     {
         size_t len = strlen(content);
         this->content = (char *)malloc(len + 1);
-        this->size = len + 1;
+        memmove(this->content, content, len);
+        this->size = len;
         this->content[this->size] = 0;
+    }
+
+    String::String(const String& other)
+    {
+        size_t len = strlen(other.content);
+        this->content = (char *)malloc(len + 1);
+        memmove(this->content, other.content, len);
+        this->size = len;
+        this->content[this->size] = 0;        
     }
 
     String::~String()
     {
-        free(content);
+        //free(content);
+        //size = 0;
     }
 
     const char *String::c_str() const
@@ -42,7 +53,7 @@ namespace jadel
     bool String::operator==(const char *other) const
     {
         bool result = strncmp(this->content, other, this->size);
-        return result;
+        return result == 0;
     }
 
     bool String::operator!=(const String &other) const

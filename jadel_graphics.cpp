@@ -3,21 +3,34 @@
 #include "jadel_endian.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <xmmintrin.h>
 #include <memory.h>
 #include "jadel_array.h"
 
 namespace jadel
 {
+
+#define GET_PIXEL(x, y, surface) (((uint32*)surface->pixels)[(x) + (y) * surface->width])
+#define TARGET_SURFACE_STACK_SIZE (20)
     int aIndex;
     int rIndex;
     int gIndex;
     int bIndex;
 
-#define TARGET_SURFACE_STACK_SIZE (20)
+    struct TargetSurface
+    {
+        Surface *surface;
+        int width;
+        int height;
+        int halfWidth;
+        int halfHeight;
+    };
 
-    static Surface *targetSurface;
+    static TargetSurface *targetSurface;
 
-    static Array<Surface *> targetSurfaceStack(TARGET_SURFACE_STACK_SIZE);
+    static Surface *targetSurfaceData;
+
+    static Array<TargetSurface> targetSurfaceStack(TARGET_SURFACE_STACK_SIZE);
 
     static uint32 clearColor = 0;
 
@@ -39,12 +52,37 @@ namespace jadel
         }
     }
 
+    int getRelativeX(float x)
+    {
+        int result = targetSurface->halfWidth + roundToInt(x * (float)targetSurface->halfWidth);
+        return result;
+    }
+
+    int getRelativeY(float y)
+    {
+        int result = targetSurface->halfHeight + roundToInt(y * (float)targetSurface->halfHeight);
+        return result;
+    }
+
+    Point2i getRelativePixel(float x, float y)
+    {
+        Point2i result = {getRelativeX(x), getRelativeY(y)};
+        return result;
+    }
+
     bool graphicsPushTargetSurface(Surface *target)
     {
         if (!target || targetSurfaceStack.size == TARGET_SURFACE_STACK_SIZE)
             return false;
-        targetSurfaceStack.push(target);
-        targetSurface = target;
+        TargetSurface t;
+        t.surface = target;
+        t.width = target->width;
+        t.height = target->height;
+        t.halfWidth = target->width / 2;
+        t.halfHeight = target->height / 2;
+        targetSurfaceStack.push(t);
+        targetSurface = &targetSurfaceStack.back();
+        targetSurfaceData = targetSurface->surface;
         return true;
     }
 
@@ -54,17 +92,20 @@ namespace jadel
             return false;
         if (targetSurfaceStack.size > 0)
         {
-            targetSurface = targetSurfaceStack.back();
+            targetSurface = &targetSurfaceStack.back();
+            targetSurfaceData = targetSurface->surface;
         }
         else
+        {
             targetSurface = NULL;
-
+            targetSurfaceData = NULL;
+        }
         return true;
     }
 
     void graphicsDrawPixelFast(int x, int y, uint32 color)
     {
-        uint32 *pixels = (uint32 *)targetSurface->pixels;
+        uint32 *pixels = (uint32 *)targetSurfaceData->pixels;
         pixels[x + y * targetSurface->width] = color;
     }
 
@@ -105,7 +146,7 @@ namespace jadel
         if (yEnd >= targetSurface->height)
             yEnd = targetSurface->height;
 
-        uint32 *targetPixels = (uint32 *)targetSurface->pixels;
+        uint32 *targetPixels = (uint32 *)targetSurfaceData->pixels;
         for (int y = yStart; y < yEnd; ++y)
         {
             for (int x = xStart; x < xEnd; ++x)
@@ -123,17 +164,26 @@ namespace jadel
 
     void graphicsDrawRect(Recti rect, uint32 color)
     {
-        graphicsDrawRect(rect.x, rect.x + rect.w, rect.y, rect.y + rect.h, color);
+        graphicsDrawRect(rect.x0, rect.x0 + rect.x1, rect.y0, rect.y0 + rect.y1, color);
     }
 
     void graphicsDrawRect(Recti rect, Color color)
     {
-        graphicsDrawRect(rect.x, rect.x + rect.w, rect.y, rect.y + rect.h, color);
+        graphicsDrawRect(rect.x0, rect.x0 + rect.x1, rect.y0, rect.y0 + rect.y1, color);
     }
 
-    void graphicsBlit(const Surface *source, Recti dimensions)
+    void graphicsDrawRectRelative(float xStart, float yStart, float xEnd, float yEnd, Color color)
     {
-        graphicsBlit(source, dimensions.x, dimensions.y, dimensions.w, dimensions.h);
+        Point2i start = getRelativePixel(xStart, yStart);
+        Point2i end = getRelativePixel(xEnd, yEnd);
+        Recti finalRect = {start.x, start.y, end.x - start.x, end.y - start.y};
+
+        graphicsDrawRect(finalRect, color);
+    }
+
+    void graphicsDrawRectRelative(Rectf rect, Color color)
+    {
+        graphicsDrawRectRelative(rect.x0, rect.y0, rect.x1, rect.y1, color);
     }
 
     uint32 graphicsConvertColorToU32(Color color)
@@ -144,20 +194,20 @@ namespace jadel
         color.b = clampf(color.b, 0, 1.0f);
 
         uint32 result =
-            (uint32)(color.a * 255.0f) << ALPHA_SHIFT & ALPHA_MASK  |
-            (uint32)(color.r * 255.0f) << RED_SHIFT   & RED_MASK    |
-            (uint32)(color.g * 255.0f) << GREEN_SHIFT & GREEN_MASK  |
-            (uint32)(color.b * 255.0f) << BLUE_SHIFT  & BLUE_MASK;
+            (uint32)(color.a * 255.0f) << ALPHA_SHIFT & ALPHA_MASK |
+            (uint32)(color.r * 255.0f) << RED_SHIFT & RED_MASK |
+            (uint32)(color.g * 255.0f) << GREEN_SHIFT & GREEN_MASK |
+            (uint32)(color.b * 255.0f) << BLUE_SHIFT & BLUE_MASK;
         return result;
     }
 
     Color graphicsConvertU32ToColor(unsigned int color)
     {
         Color result;
-        result.a = (float)((color & ALPHA_MASK)   >> ALPHA_SHIFT) / 255.0f;
-        result.r = (float)((color & RED_MASK)     >> RED_SHIFT) / 255.0f;
-        result.g = (float)((color & GREEN_MASK)   >> GREEN_SHIFT) / 255.0f;
-        result.b = (float)((color & BLUE_MASK)    >> BLUE_SHIFT) / 255.0f;
+        result.a = (float)((color & ALPHA_MASK) >> ALPHA_SHIFT) / 255.0f;
+        result.r = (float)((color & RED_MASK) >> RED_SHIFT) / 255.0f;
+        result.g = (float)((color & GREEN_MASK) >> GREEN_SHIFT) / 255.0f;
+        result.b = (float)((color & BLUE_MASK) >> BLUE_SHIFT) / 255.0f;
 
         return result;
     }
@@ -177,49 +227,6 @@ namespace jadel
         return result;
     }
 
-    void graphicsBlit(const Surface *source, int x, int y)
-    {
-        if (x >= targetSurface->width || y >= targetSurface->height)
-        {
-            return;
-        }
-
-        int w = source->width;
-        int h = source->height;
-
-        if (x + w >= targetSurface->width)
-            w = targetSurface->width - x;
-        if (y + h >= targetSurface->height)
-            h = targetSurface->height - y;
-
-        int xOffset = 0;
-        int yOffset = 0;
-        if (x < 0)
-        {
-            xOffset = -x;
-            w += x;
-            x = 0;
-        }
-        if (y < 0)
-        {
-            yOffset = -y;
-            h += y;
-            y = 0;
-        }
-        // printf("x: %d, y: %d, w: %d, h: %d\n ", x, y, w, h);
-        uint32 *sourcePixels = (uint32 *)source->pixels;
-        uint32 *targetPixels = (uint32 *)targetSurface->pixels;
-        for (int yIndex = 0; yIndex < h; ++yIndex)
-        {
-            for (int xIndex = 0; xIndex < w; ++xIndex)
-            {
-                unsigned int finalPixel = graphicsBlendColors(sourcePixels[(xIndex + xOffset) + (yIndex + yOffset) * source->width], targetPixels[(x + xIndex) + (y + yIndex) * targetSurface->width]);
-                graphicsDrawPixelFast(x + xIndex, y + yIndex, finalPixel);
-            }
-        }
-    }
-
-
     void graphicsBlitFast(const Surface *source, int x, int y, int w, int h)
     {
         if (x == 0 && y == 0 && w == source->width && h == source->height)
@@ -228,80 +235,128 @@ namespace jadel
             if (graphicsCopyEqualSizeSurface(source))
                 return;
         }
-        
+
         float xStep = (float)source->width / (float)w;
         float yStep = (float)source->height / (float)h;
         // printf("x: %d, y: %d, w: %d, h: %d\n ", x, y, w, h);
         uint32 *sourcePixels = (uint32 *)source->pixels;
-        uint32 *targetPixels = (uint32 *)targetSurface->pixels;
+        uint32 *targetPixels = (uint32 *)targetSurfaceData->pixels;
         for (int yIndex = 0; yIndex < h; ++yIndex)
         {
             for (int xIndex = 0; xIndex < w; ++xIndex)
             {
                 unsigned int finalPixel = graphicsBlendColors(
-                    sourcePixels[roundToInt((float)(xIndex) * xStep) 
-                    + roundToInt((float)(yIndex) * yStep) * source->width], targetPixels[(x + xIndex) + (y + yIndex) * targetSurface->width]);
+                    sourcePixels[roundToInt((float)(xIndex)*xStep) + roundToInt((float)(yIndex)*yStep) * source->width], targetPixels[(x + xIndex) + (y + yIndex) * targetSurface->width]);
                 graphicsDrawPixelFast(x + xIndex, y + yIndex, finalPixel);
             }
         }
     }
 
-    void graphicsBlitFast(const Surface *source, Recti rect)
+    void graphicsBlitFast(const Surface* source, int targetX, int targetY, int targetW, int targetH, int sourceX, int sourceY, int sourceW, int sourceH, float sourceXStep, float sourceYStep)
     {
-        graphicsBlitFast(source, rect.x, rect.y, rect.w, rect.h);
+        for (int y = 0; y < targetH; ++y)
+        {
+            for (int x = 0; x < targetW; ++x)
+            {
+                uint32 finalPixel = graphicsBlendColors(GET_PIXEL(sourceX + (int)((float)x * sourceXStep), 
+                                                                  sourceY + (int)((float)y * sourceYStep), source), 
+                    GET_PIXEL(targetX + x, targetY + y, targetSurface->surface));
+                graphicsDrawPixelFast(targetX + x, targetY + y, finalPixel);
+            }
+        }
     }
 
-
-    bool graphicsCopyEqualSizeSurface(const Surface* source)
+    void graphicsBlit(const Surface *source, int targetX, int targetY, int targetW, int targetH, int sourceX, int sourceY, int sourceW, int sourceH)
     {
-        if (source->width != targetSurface->width || source->height != targetSurface->height)
-            return false;
-        bool result = memcpy(targetSurface->pixels, source->pixels, source->width * source->height * 4);
-        return result != NULL;
+        if (targetX >= targetSurface->width || targetY >= targetSurface->height)
+        {
+            return;
+        }
+
+        if (targetW < 1 || targetH < 1)
+            return;
+
+        float sourceXStep = ((float)sourceW / (float)targetW);
+        float sourceYStep = ((float)sourceH / (float)targetH);
+
+        int xOffset = 0;
+        int yOffset = 0;
+        if (targetX < 0)
+        {
+            xOffset = -targetX;
+            targetW += targetX;
+            targetX = 0;
+        }
+        if (targetY < 0)
+        {
+            yOffset = -targetY;
+            targetH += targetY;
+            targetY = 0;
+        }
+        if (targetX + targetW > targetSurface->width)
+        {
+            targetW = targetSurface->width - targetX;
+        }
+        if (targetY + targetH > targetSurface->height)
+        {
+            targetH = targetSurface->height - targetY;
+        }
+
+        if (sourceX < 0)
+        {
+            sourceX = 0;
+        }
+        if (sourceX + sourceW > source->width)
+        {
+            sourceW = source->width - sourceX;
+        }
+        if (sourceY < 0)
+        {
+            sourceY = 0;
+        }
+        if (sourceY + sourceH > source->height)
+        {
+            sourceH = source->height - sourceY;
+        }
+
+        graphicsBlitFast(source, targetX, targetY, targetW, targetH, 
+                        sourceX + (float)xOffset * sourceXStep, sourceY + (float)yOffset * sourceYStep, sourceW, sourceH, 
+                        sourceXStep, sourceYStep);
     }
 
     void graphicsBlit(const Surface *source, int x, int y, int w, int h)
     {
-        if (x >= targetSurface->width || y >= targetSurface->height)
-        {
-            return;
-        }
+        graphicsBlit(source, x, y, w, h, 0, 0, source->width, source->height);
+    }
 
-        if (w < 1 || h < 1)
-            return;
+    void graphicsBlit(const Surface *source, int x, int y)
+    {
+        graphicsBlit(source, x, y, source->width, source->height);
+    }
+    
+    void graphicsBlit(const Surface *source, Recti dimensions)
+    {
+        graphicsBlit(source, dimensions.x0, dimensions.y0, dimensions.x1 - dimensions.x0, dimensions.y1 - dimensions.y0);
+    }
 
-        int xOffset = 0;
-        int yOffset = 0;
-        if (x < 0)
-        {
-            xOffset = -x;
-            w += x;
-            x = 0;
-        }
-        if (y < 0)
-        {
-            yOffset = -y;
-            h += y;
-            y = 0;
-        }
-        
-        graphicsBlitFast(source, x + xOffset, y + yOffset, w, h);
-        /*
-        float xStep = (float)source->width / (float)w;
-        float yStep = (float)source->height / (float)h;
-        // printf("x: %d, y: %d, w: %d, h: %d\n ", x, y, w, h);
-        uint32 *sourcePixels = (uint32 *)source->pixels;
-        uint32 *targetPixels = (uint32 *)targetSurface->pixels;
-        
-        for (int yIndex = 0; yIndex < h; ++yIndex)
-        {
-            for (int xIndex = 0; xIndex < w; ++xIndex)
-            {
-                unsigned int finalPixel = graphicsBlendColors(
-                    sourcePixels[roundToInt((float)(xIndex + xOffset) * xStep) + roundToInt((float)(yIndex + yOffset) * yStep) * source->width], targetPixels[(x + xIndex) + (y + yIndex) * targetSurface->width]);
-                graphicsDrawPixelFast(x + xIndex, y + yIndex, finalPixel);
-            }
-        }*/
+    void graphicsBlitRelative(const Surface *source, Rectf dimensions)
+    {
+        Point2i start = getRelativePixel(dimensions.x0, dimensions.y0);
+        Point2i end = getRelativePixel(dimensions.x1, dimensions.y1);
+        graphicsBlit(source, {start.x, start.y, end.x, end.y});
+    }
+
+    void graphicsBlitFast(const Surface *source, Recti rect)
+    {
+        graphicsBlitFast(source, rect.x0, rect.y0, rect.x1, rect.y1);
+    }
+
+    bool graphicsCopyEqualSizeSurface(const Surface *source)
+    {
+        if (source->width != targetSurface->width || source->height != targetSurface->height)
+            return false;
+        bool result = memcpy(targetSurfaceData->pixels, source->pixels, source->width * source->height * 4);
+        return result != NULL;
     }
 
     void graphicsFill(unsigned int color)
@@ -317,19 +372,23 @@ namespace jadel
 
     void graphicsMultiplyPixelValues(float val)
     {
-        uint8* pixelElements = (uint8*)targetSurface->pixels;
+        //__vector unsigned char cs = (__vector unsigned char){1, 2, 3, 4, 2, 4, 5, 5, 1, 2, 3, 4, 2, 4, 5, 5};
+        uint8 *pixelElements = (uint8 *)targetSurfaceData->pixels;
         for (int i = 0; i < targetSurface->width * targetSurface->width; ++i)
         {
             unsigned int temp = pixelElements[i * 4 + rIndex] * val;
-            if (temp > 255) temp = 255;
+            if (temp > 255)
+                temp = 255;
             pixelElements[i * 4 + rIndex] = temp;
             temp = pixelElements[i * 4 + gIndex] * val;
-            if (temp > 255) temp = 255;
+            if (temp > 255)
+                temp = 255;
             pixelElements[i * 4 + gIndex] = temp;
             temp = pixelElements[i * 4 + bIndex] * val;
-            if (temp > 255) temp = 255;
+            if (temp > 255)
+                temp = 255;
             pixelElements[i * 4 + bIndex] = temp;
-        } 
+        }
     }
 
     bool graphicsCreateSurface(int width, int height, Surface *target)

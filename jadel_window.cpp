@@ -1,7 +1,9 @@
 #include "jadel_window.h"
 #include <tchar.h>
 #include "jadel_update.h"
-//#include "defs.h"
+#include "jadel_message.h"
+#include "jadel_input.h"
+
 namespace jadel
 {
     bool windowCreate(Window *target, const char *title, size_t width, size_t height)
@@ -9,28 +11,38 @@ namespace jadel
         if (!target)
             return false;
 
+        if (jadel::numWindows < 10)
+            jadel::windowList[jadel::numWindows++] = target;
+        else 
+        {
+            jadel::message("[ERROR] Could not create window %s. Too many windows!\n", title);
+            return false;
+        }   
         RECT clientRect;
-        clientRect.left = 0;
-        clientRect.top = 0;
-        clientRect.right = width;
-        clientRect.bottom = height;
-
         HWND windowHandle = CreateWindowEx(0,
                                            className,
                                            title,
                                            WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                                            CW_USEDEFAULT, CW_USEDEFAULT,
-                                           clientRect.right - clientRect.left, clientRect.bottom - clientRect.top,
+                                           width, height,
                                            NULL,
                                            NULL,
                                            myHInstance,
                                            NULL);
 
+        RECT windowRect;
+        GetWindowRect(windowHandle, &windowRect);
+        GetClientRect(windowHandle, &clientRect);
+        POINT ptDiff;
+        ptDiff.x = (windowRect.right - windowRect.left) - clientRect.right;
+        ptDiff.y = (windowRect.bottom - windowRect.top) - clientRect.bottom;
+        MoveWindow(windowHandle, windowRect.left, windowRect.top, width + ptDiff.x, height + ptDiff.y, TRUE);
+
         if (!windowHandle)
             return false;
-        // if (!createSurface(width, height, &target->winSurface)) return false;
-        target->width = width;
-        target->height = height;
+
+        target->width = windowRect.right - windowRect.left;
+        target->height = windowRect.bottom - windowRect.top;
         target->hWnd = windowHandle;
 
         target->bitmapInfo.bmiHeader.biSize = sizeof(target->bitmapInfo.bmiHeader);
@@ -39,6 +51,7 @@ namespace jadel
         target->bitmapInfo.bmiHeader.biPlanes = 1;
         target->bitmapInfo.bmiHeader.biBitCount = 32;
         target->bitmapInfo.bmiHeader.biCompression = BI_RGB;
+        jadel::inputSetCurrentWindow(target);
         ShowWindow(windowHandle, SW_SHOW);
         return true;
     }
@@ -59,5 +72,13 @@ namespace jadel
                       DIB_RGB_COLORS,
                       SRCCOPY);
         ReleaseDC(win->hWnd, deviceContext);
+    }
+
+    void windowUpdateSize(Window* win)
+    {
+        RECT clientRect;
+        GetClientRect(win->hWnd, &clientRect);
+        win->width = clientRect.right - clientRect.left;
+        win->height = clientRect.bottom - clientRect.top;
     }
 }   

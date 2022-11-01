@@ -10,6 +10,7 @@ namespace jadel
         size_t size;
 
         String(const char *content);
+        String(const String& other);
         ~String();
         const char* c_str() const;
         char* c_str();

@@ -17,4 +17,5 @@ namespace jadel
 
     DECLSPEC bool windowCreate(Window *target, const char *title, size_t width, size_t height);
     DECLSPEC void windowUpdate(Window *win, const Surface *buffer);
+    void windowUpdateSize(Window* win);
 }
