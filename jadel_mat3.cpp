@@ -29,15 +29,17 @@ namespace jadel
 
     Mat3 Mat3::mul(Mat3 other)
     {
+        
         Mat3 result;
         for (int row = 0; row < 3; ++row)
         {
             for (int col = 0; col < 3; ++col)
             {
-                for (int i = 0; i < 3; ++i)
-                {
-                    result.elements[col + row * 3] += GET(col + i, row) * OTHER_GET(col, row + i);
-                }
+                result.elements[col + row * 3] =
+                    GET(0, row) * OTHER_GET(col, 0) + 
+                    GET(1, row) * OTHER_GET(col, 1) + 
+                    GET(2, row) * OTHER_GET(col, 2);
+                
             }
         }
         return result;
