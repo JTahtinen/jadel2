@@ -5,12 +5,42 @@
 #include "jadel_math.h"
 #include "jadel_endian.h"
 #include "jadel_graphics.h"
+#include "jadel_memory.h"
+#include "jadel_message.h"
+
 #include <stdlib.h>
 
 namespace jadel
 {
+    
+    inline size_t getFileSize(FILE *fp)
+    {
+        fseek(fp, 0, SEEK_END);
+        size_t result = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        return result;
+    }
 
-    inline bool readTextFile(const char *filepath, char *target, int bufferSize, int *numCharacters)
+    inline size_t getBinaryFileSize(const char *filepath)
+    {
+        FILE *fp = fopen(filepath, "rb");
+        if (!fp)
+            return 0;
+        size_t result = getFileSize(fp);
+        return result;
+    }
+
+    inline size_t getTextFileSize(const char *filepath)
+    {
+        FILE *fp = fopen(filepath, "r");
+
+        if (!fp)
+            return 0;
+        size_t result = getFileSize(fp);
+        return result;
+    }
+
+    inline bool readTextFile(const char *filepath, char *target, int bufferSize, size_t *numCharacters)
     {
         FILE *fp = fopen(filepath, "r");
         if (!fp)
@@ -28,16 +58,15 @@ namespace jadel
         return true;
     }
 
-    inline size_t getBinaryFileSize(const char *filepath)
+    inline bool readTextFileAndReserveMemory(const char* filepath, char** target, size_t *numCharacters)
     {
-        FILE *fp = fopen(filepath, "rb");
-        if (!fp)
-            return 0;
-
-        fseek(fp, 0, SEEK_END);
-        size_t result = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
-        fclose(fp);
+        FILE *fp = fopen(filepath, "r");
+        if (!fp) return false;
+        size_t fileSize = getFileSize(fp) + 1; // Null terminator
+        char* data = (char*)jadel::memoryReserve(fileSize);
+        if (!data) return false;
+        bool result = readTextFile(filepath, data, fileSize, numCharacters);
+        *target = data;
         return result;
     }
 
@@ -55,7 +84,7 @@ namespace jadel
 
         if (bufferSize < fileSize)
         {
-            printf("Buffer size too low: %zd bytes, file size is %zd bytes\n", bufferSize, fileSize);
+            jadel::message("Buffer size too low: %zd bytes, file size is %zd bytes\n", bufferSize, fileSize);
             return false;
         }
         fread(buffer, fileSize, 1, fp);
@@ -106,7 +135,6 @@ namespace jadel
         parser.advance(4);
         int width = parser.getINT32();
         int height = parser.getINT32();
-        printf("offset: %d, W: %d, H: %d\n", header.offset, width, height);
         void *buffer = malloc(width * height * 4);
         int numBytes;
         if (!readBinaryFileBytes(filepath, header.offset, width * height * 4, buffer))
