@@ -41,9 +41,9 @@ namespace jadel
     };
 
     extern DECLSPEC void graphicsInit();
-    extern DECLSPEC int getRelativeX(float x);
-    extern DECLSPEC int getRelativeY(float y);
-    extern DECLSPEC Point2i getRelativePixel(float x, float y);
+    extern DECLSPEC int getRelativeX(float x, Recti rect);
+    extern DECLSPEC int getRelativeY(float y, Recti rect);
+    extern DECLSPEC Point2i getRelativePoint(float x, float y, Recti rect);
     extern DECLSPEC bool graphicsPushTargetSurface(Surface *target);
     extern DECLSPEC bool graphicsPopTargetSurface();
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, uint32 color);
@@ -59,15 +59,16 @@ namespace jadel
     extern DECLSPEC Color graphicsConvertU32ToColor(unsigned int color);
     extern DECLSPEC uint32 graphicsBlendColors(Color foreground, Color background);
     extern DECLSPEC uint32 graphicsBlendColors(uint32 foreground, uint32 background);
-    extern DECLSPEC bool graphicsCopyEqualSizeSurface(const Surface* source);
-    extern DECLSPEC void graphicsBlitFast(const Surface *source, int x, int y, int w, int h);
+    extern DECLSPEC void graphicsBlitFast(const Surface *source, int targetX0, int targetY0, int targetX1, int targetY1, int sourceX0, int sourceY0, int sourceX1, int sourceY1, float sourceXStep, float sourceYStep);
+    extern DECLSPEC void graphicsBlitFast(const Surface *source, int x0, int y0, int x1, int y1);
     extern DECLSPEC void graphicsBlitFast(const Surface *source, Recti rect);
-    extern DECLSPEC void graphicsBlitFast(const Surface* source, int targetX, int targetY, int targetW, int targetH, int sourceX, int sourceY, int sourceW, int sourceH, float sourceXStep, float sourceYStep);
-    extern DECLSPEC void graphicsBlit(const Surface *source, int targetX, int targetY, int targetW, int targetH, int sourceX, int sourceY, int sourceW, int sourceH);
+    extern DECLSPEC void graphicsBlit(const Surface *source, int targetX0, int targetY0, int targetX1, int targetY1, int sourceX0, int sourceY0, int sourceX1, int sourceY1);
     extern DECLSPEC void graphicsBlit(const Surface *source, int x, int y);
-    extern DECLSPEC void graphicsBlit(const Surface *source, int x, int y, int w, int h);
-    extern DECLSPEC void graphicsBlit(const Surface *source, Recti dimensions);
-    extern DECLSPEC void graphicsBlitRelative(const Surface *source, Rectf dimensions);
+    extern DECLSPEC void graphicsBlit(const Surface *source, int x0, int y0, int x1, int y1);
+    extern DECLSPEC void graphicsBlit(const Surface *source, Recti targetRect);
+    extern DECLSPEC void graphicsBlitRelative(const Surface *source, Rectf targetRect, Rectf sourceRect);
+    extern DECLSPEC void graphicsBlitRelative(const Surface *source, Rectf targetRect);
+    extern DECLSPEC bool graphicsCopyEqualSizeSurface(const Surface* source);
     extern DECLSPEC void graphicsFill(unsigned int color);
     extern DECLSPEC void graphicsMultiplyPixelValues(float val);
     extern DECLSPEC bool graphicsCreateSurface(int width, int height, Surface *target);

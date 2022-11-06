@@ -6,11 +6,12 @@
 #include <xmmintrin.h>
 #include <memory.h>
 #include "jadel_array.h"
+#include "jadel_util.h"
 
 namespace jadel
 {
 
-#define GET_PIXEL(x, y, surface) (((uint32*)surface->pixels)[(x) + (y) * surface->width])
+#define GET_PIXEL(x, y, surface) (((uint32 *)surface->pixels)[(x) + (y)*surface->width])
 #define TARGET_SURFACE_STACK_SIZE (20)
     int aIndex;
     int rIndex;
@@ -24,6 +25,7 @@ namespace jadel
         int height;
         int halfWidth;
         int halfHeight;
+        Recti rect;
     };
 
     static TargetSurface *targetSurface;
@@ -52,21 +54,41 @@ namespace jadel
         }
     }
 
-    int getRelativeX(float x)
+    int getTextureCoordPixelX(float x, const Surface* surface)
     {
-        int result = targetSurface->halfWidth + roundToInt(x * (float)targetSurface->halfWidth);
+        int result = (int)(x * (float)surface->width);
         return result;
     }
 
-    int getRelativeY(float y)
+    int getTextureCoordPixelY(float y, const Surface* surface)
     {
-        int result = targetSurface->halfHeight + roundToInt(y * (float)targetSurface->halfHeight);
+        int result = (int)(y * (float)surface->height);
         return result;
     }
 
-    Point2i getRelativePixel(float x, float y)
+    Point2i getTextureCoordPixelPos(float x, float y, const Surface* surface)
     {
-        Point2i result = {getRelativeX(x), getRelativeY(y)};
+        Point2i result = {getTextureCoordPixelX(x, surface), getTextureCoordPixelY(y, surface)};
+        return result;
+    }
+
+    int getRelativeX(float x, Recti rect)
+    {
+        int halfWidth = (rect.x1 - rect.x0) / 2;
+        int result = halfWidth + roundToInt(x * (float)halfWidth);
+        return result;
+    }
+
+    int getRelativeY(float y, Recti rect)
+    {
+        int halfHeight = (rect.y1 - rect.y0) / 2;
+        int result = halfHeight + roundToInt(y * (float)halfHeight);
+        return result;
+    }
+
+    Point2i getRelativePoint(float x, float y, Recti rect)
+    {
+        Point2i result = {getRelativeX(x, rect), getRelativeY(y, rect)};
         return result;
     }
 
@@ -80,6 +102,7 @@ namespace jadel
         t.height = target->height;
         t.halfWidth = target->width / 2;
         t.halfHeight = target->height / 2;
+        t.rect = {0, 0, target->width, target->height};
         targetSurfaceStack.push(t);
         targetSurface = &targetSurfaceStack.back();
         targetSurfaceData = targetSurface->surface;
@@ -174,8 +197,8 @@ namespace jadel
 
     void graphicsDrawRectRelative(float xStart, float yStart, float xEnd, float yEnd, Color color)
     {
-        Point2i start = getRelativePixel(xStart, yStart);
-        Point2i end = getRelativePixel(xEnd, yEnd);
+        Point2i start = getRelativePoint(xStart, yStart, targetSurface->rect);
+        Point2i end = getRelativePoint(xEnd, yEnd, targetSurface->rect);
         Recti finalRect = {start.x, start.y, end.x - start.x, end.y - start.y};
 
         graphicsDrawRect(finalRect, color);
@@ -227,128 +250,186 @@ namespace jadel
         return result;
     }
 
-    void graphicsBlitFast(const Surface *source, int x, int y, int w, int h)
+    void graphicsBlitFast(const Surface *source, 
+    int targetX0, int targetY0, 
+    int targetX1, int targetY1, 
+    int sourceX0, int sourceY0, 
+    int sourceX1, int sourceY1, 
+    float sourceXStep, float sourceYStep)
     {
-        if (x == 0 && y == 0 && w == source->width && h == source->height)
+        for (int y = 0; y < targetY1 - targetY0; ++y)
+        {
+            for (int x = 0; x < targetX1 - targetX0; ++x)
+            {
+                //uint32 sourcePixel = GET_PIXEL(sourceX0 + (int)((float)x * sourceXStep),
+                //                                                  sourceY0 + (int)((float)y * sourceYStep), source);
+                
+                uint32 finalPixel = graphicsBlendColors(GET_PIXEL(sourceX0 + (int)((float)x * sourceXStep),
+                                                                  sourceY0 + (int)((float)y * sourceYStep), source),
+                                                        GET_PIXEL(targetX0 + x, targetY0 + y, targetSurface->surface));
+                graphicsDrawPixelFast(targetX0 + x, targetY0 + y, finalPixel);
+            }
+        }
+    }
+
+    void graphicsBlitFast(const Surface *source, int x0, int y0, int x1, int y1)
+    {
+        if (x0 == 0 && y0 == 0 && x1 == source->width && y1 == source->height)
         {
             // The method will check if both surfaces are of equal size before copying
             if (graphicsCopyEqualSizeSurface(source))
                 return;
         }
-
-        float xStep = (float)source->width / (float)w;
-        float yStep = (float)source->height / (float)h;
-        // printf("x: %d, y: %d, w: %d, h: %d\n ", x, y, w, h);
-        uint32 *sourcePixels = (uint32 *)source->pixels;
-        uint32 *targetPixels = (uint32 *)targetSurfaceData->pixels;
-        for (int yIndex = 0; yIndex < h; ++yIndex)
-        {
-            for (int xIndex = 0; xIndex < w; ++xIndex)
-            {
-                unsigned int finalPixel = graphicsBlendColors(
-                    sourcePixels[roundToInt((float)(xIndex)*xStep) + roundToInt((float)(yIndex)*yStep) * source->width], targetPixels[(x + xIndex) + (y + yIndex) * targetSurface->width]);
-                graphicsDrawPixelFast(x + xIndex, y + yIndex, finalPixel);
-            }
-        }
+        int width = x1 - x0;
+        int height = y1 - y0;
+        float xStep = (float)source->width / (float)width;
+        float yStep = (float)source->height / (float)height;
+        graphicsBlitFast(source, x0, y0, x1, y1, 0, 0, source->width, source->height, xStep, yStep);
+    }
+    
+    void graphicsBlitFast(const Surface *source, Recti rect)
+    {
+        graphicsBlitFast(source, rect.x0, rect.y0, rect.x1, rect.y1);
     }
 
-    void graphicsBlitFast(const Surface* source, int targetX, int targetY, int targetW, int targetH, int sourceX, int sourceY, int sourceW, int sourceH, float sourceXStep, float sourceYStep)
-    {
-        for (int y = 0; y < targetH; ++y)
-        {
-            for (int x = 0; x < targetW; ++x)
-            {
-                uint32 finalPixel = graphicsBlendColors(GET_PIXEL(sourceX + (int)((float)x * sourceXStep), 
-                                                                  sourceY + (int)((float)y * sourceYStep), source), 
-                    GET_PIXEL(targetX + x, targetY + y, targetSurface->surface));
-                graphicsDrawPixelFast(targetX + x, targetY + y, finalPixel);
-            }
-        }
-    }
 
-    void graphicsBlit(const Surface *source, int targetX, int targetY, int targetW, int targetH, int sourceX, int sourceY, int sourceW, int sourceH)
+    int debugTX0;
+    int debugTY0;
+    int debugTX1;
+    int debugTY1;
+
+    int debugSX0;
+    int debugSY0;
+    int debugSX1;
+    int debugSY1;
+
+    int debugTW;
+    int debugSW;
+
+    float debugSourceXStep;
+    float debugSourceYStep;
+    void graphicsBlit(const Surface *source, 
+                        int targetX0, int targetY0, 
+                        int targetX1, int targetY1, 
+                        int sourceX0, int sourceY0, 
+                        int sourceX1, int sourceY1)
     {
-        if (targetX >= targetSurface->width || targetY >= targetSurface->height)
+        if (targetX0 == targetX1 || targetY0 == targetY1 || sourceX0 == sourceX1 || sourceY0 == sourceY1)
+            return;
+        if (targetX0 > targetX1) swapInt(&targetX0, &targetX1);
+        if (targetY0 > targetY1) swapInt(&targetY0, &targetY1);
+        if (sourceX0 > sourceX1) swapInt(&sourceX0, &sourceX1);
+        if (sourceY0 > sourceY1) swapInt(&sourceY0, &sourceY1);
+        if (targetX0 >= targetSurface->width || targetY0 >= targetSurface->height
+            || targetX1 <= 0 || targetY1 <= 0
+            || sourceX0 >= source->width || sourceY0 >= source->height
+            || sourceX1 <= 0 || sourceY1 <= 0)
         {
             return;
         }
 
-        if (targetW < 1 || targetH < 1)
-            return;
+        int targetW = targetX1 - targetX0;
+        int targetH = targetY1 - targetY0;
+        
+        int sourceW = sourceX1 - sourceX0;
+        int sourceH = sourceY1 - sourceY0;
 
         float sourceXStep = ((float)sourceW / (float)targetW);
         float sourceYStep = ((float)sourceH / (float)targetH);
+/*
+        debugTX0 = targetX0;
+        debugTY0 = targetY0;
+        debugTX1 = targetX1;
+        debugTY1 = targetY1;
 
-        int xOffset = 0;
-        int yOffset = 0;
-        if (targetX < 0)
-        {
-            xOffset = -targetX;
-            targetW += targetX;
-            targetX = 0;
-        }
-        if (targetY < 0)
-        {
-            yOffset = -targetY;
-            targetH += targetY;
-            targetY = 0;
-        }
-        if (targetX + targetW > targetSurface->width)
-        {
-            targetW = targetSurface->width - targetX;
-        }
-        if (targetY + targetH > targetSurface->height)
-        {
-            targetH = targetSurface->height - targetY;
-        }
+        debugSX0 = sourceX0;
+        debugSY0 = sourceY0;
+        debugSX1 = sourceX1;
+        debugSY1 = sourceY1;
 
-        if (sourceX < 0)
+        debugTW = targetW;
+        debugSW = sourceW;
+
+        debugSourceXStep = sourceXStep;
+        debugSourceYStep = sourceYStep;
+*/
+
+        if (targetX0 < 0)
         {
-            sourceX = 0;
+            sourceX0 -= (targetX0 * sourceXStep);
+            targetX0 = 0;
         }
-        if (sourceX + sourceW > source->width)
+        if (targetY0 < 0)
         {
-            sourceW = source->width - sourceX;
+            sourceY0 -= (targetY0 * sourceYStep);
+            targetY0 = 0;
         }
-        if (sourceY < 0)
+        if (targetX1 > targetSurface->width)
         {
-            sourceY = 0;
+            sourceX1 -= targetX1 - targetSurface->width;
+            targetX1 = targetSurface->width;
         }
-        if (sourceY + sourceH > source->height)
+        if (targetY1 > targetSurface->height)
         {
-            sourceH = source->height - sourceY;
+            sourceY1 -= targetY1 - targetSurface->height;
+            targetY1 = targetSurface->height;
         }
 
-        graphicsBlitFast(source, targetX, targetY, targetW, targetH, 
-                        sourceX + (float)xOffset * sourceXStep, sourceY + (float)yOffset * sourceYStep, sourceW, sourceH, 
-                        sourceXStep, sourceYStep);
+        if (sourceX0 < 0)
+        {
+            return;
+            //sourceX0 = 0;
+        }
+        if (sourceX1 > source->width)
+        {
+            return;
+            //sourceX1 = source->width;
+        }
+        if (sourceY0 < 0)
+        {
+            return;
+            //sourceY0 = 0;
+        }
+        if (sourceY1 > source->height)
+        {
+            return;
+            //sourceY1 = source->height;
+        }
+
+        graphicsBlitFast(source, targetX0, targetY0, targetX1, targetY1,
+                         sourceX0, sourceY0, sourceX1, sourceY1,
+                         sourceXStep, sourceYStep);
     }
 
-    void graphicsBlit(const Surface *source, int x, int y, int w, int h)
+    void graphicsBlit(const Surface *source, int x0, int y0, int x1, int y1)
     {
-        graphicsBlit(source, x, y, w, h, 0, 0, source->width, source->height);
+        graphicsBlit(source, x0, y0, x1, y1, 0, 0, source->width, source->height);
     }
 
     void graphicsBlit(const Surface *source, int x, int y)
     {
         graphicsBlit(source, x, y, source->width, source->height);
     }
-    
-    void graphicsBlit(const Surface *source, Recti dimensions)
+
+    void graphicsBlit(const Surface *source, Recti targetRect)
     {
-        graphicsBlit(source, dimensions.x0, dimensions.y0, dimensions.x1 - dimensions.x0, dimensions.y1 - dimensions.y0);
+        graphicsBlit(source, targetRect.x0, targetRect.y0, targetRect.x1, targetRect.y1);
     }
 
-    void graphicsBlitRelative(const Surface *source, Rectf dimensions)
+    void graphicsBlitRelative(const Surface *source, Rectf targetRect, Rectf sourceRect)
     {
-        Point2i start = getRelativePixel(dimensions.x0, dimensions.y0);
-        Point2i end = getRelativePixel(dimensions.x1, dimensions.y1);
-        graphicsBlit(source, {start.x, start.y, end.x, end.y});
+        Point2i targetStart = getRelativePoint(targetRect.x0, targetRect.y0, targetSurface->rect);
+        Point2i targetEnd = getRelativePoint(targetRect.x1, targetRect.y1, targetSurface->rect);
+        Point2i sourceStart = getTextureCoordPixelPos(sourceRect.x0, sourceRect.y0, source);
+        Point2i sourceEnd = getTextureCoordPixelPos(sourceRect.x1, sourceRect.y1, source);
+        graphicsBlit(source, targetStart.x, targetStart.y, targetEnd.x, targetEnd.y, sourceStart.x, sourceStart.y, sourceEnd.x, sourceEnd.y); 
     }
 
-    void graphicsBlitFast(const Surface *source, Recti rect)
+
+    void graphicsBlitRelative(const Surface *source, Rectf targetRect)
     {
-        graphicsBlitFast(source, rect.x0, rect.y0, rect.x1, rect.y1);
+        graphicsBlitRelative(source, targetRect, 
+                                     Rectf{0, 0, 1.0f, 1.0f});
     }
 
     bool graphicsCopyEqualSizeSurface(const Surface *source)

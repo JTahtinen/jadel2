@@ -5,6 +5,13 @@
 
 namespace jadel
 {
+    inline void swapInt(int* val0, int* val1)
+    {
+        int temp = *val0;
+        *val0 = *val1;
+        *val1 = temp;
+    }
+    
     inline void printHexAsString(uint8 *hex, size_t length, bool flipHexBytes)
     {
         for (int i = 0; i < length; ++i)
