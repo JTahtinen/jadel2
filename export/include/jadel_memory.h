@@ -12,4 +12,9 @@ namespace jadel
     extern DECLSPEC void *memoryReserve(size_t bytes);
     extern DECLSPEC bool memoryFree(void *block);
     extern DECLSPEC void memoryPrintDebugData();
+
+    extern DECLSPEC size_t memoryGetTotalAllocationSize();
+    extern DECLSPEC size_t memoryGetNumAllocatedBlocks();
+    extern DECLSPEC size_t memoryGetNumAllocatedBytes();
+    extern DECLSPEC size_t memoryGetFreeBytes();
 }
