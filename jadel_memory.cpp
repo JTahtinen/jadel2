@@ -2,9 +2,15 @@
 #include <stdio.h>
 #include "jadel_linkedlist.h"
 #include "jadel_memory.h"
+#include "jadel_message.h"
 
 namespace jadel
 {
+
+    static size_t totalAllocationSize = 0;
+    static size_t numAllocatedBlocks = 0;
+    static size_t numAllocatedBytes = 0;
+
     struct MemoryBlock
     {
         uint8 *pointer;
@@ -53,6 +59,7 @@ namespace jadel
 
         numBytesAllocated = bytes;
         freeList.append(createMemoryBlock(memoryAllocation, numBytesAllocated));
+        totalAllocationSize = bytes;
         return true;
     }
 
@@ -76,7 +83,9 @@ namespace jadel
         }
 
         block->reserved = true;
-
+        jadel::message("Reserved %d bytes\n", bytes);
+        numAllocatedBytes += bytes;
+        ++numAllocatedBlocks;
         // No need to do more processing if the block is already precisely the correct size
         if (bytes == block->size)
             return block->pointer;
@@ -115,6 +124,7 @@ namespace jadel
 
     bool memoryFree(void *block)
     {
+        if (block == NULL) return false;
         MemoryBlock *memBlock = freeList.getHead();
         size_t i = 0;
         while (memBlock->pointer != (uint8 *)block)
@@ -124,6 +134,9 @@ namespace jadel
             if (!memBlock)
                 return false;
         }
+        jadel::message("Freed %d bytes\n", memBlock->size);
+        numAllocatedBytes -= memBlock->size;
+        --numAllocatedBlocks;
         memBlock->reserved = false;
 
         // Merge the block with the next if it's not reserved
@@ -147,5 +160,25 @@ namespace jadel
             printf("Block index: %zd, pointer %p, size: %zd, reserved: %d\n", i, block->pointer, block->size, (int)block->reserved);
             block = freeList.get(++i);
         }
+    }
+
+    size_t memoryGetTotalAllocationSize()
+    {
+        return totalAllocationSize;
+    }
+
+    size_t memoryGetNumAllocatedBlocks()
+    {
+        return numAllocatedBlocks;
+    }
+
+    size_t memoryGetNumAllocatedBytes()
+    {
+        return numAllocatedBytes;
+    }
+
+    size_t memoryGetFreeBytes()
+    {
+        return totalAllocationSize - numAllocatedBytes;
     }
 }
