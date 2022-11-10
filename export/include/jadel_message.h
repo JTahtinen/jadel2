@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include "jadel_update.h"
 
-static char stringBuffer[50];
+#define JADEL_MESSAGE_STRING_BUFFER_SIZE (50)
+static char jadelMessageStringBuffer[JADEL_MESSAGE_STRING_BUFFER_SIZE];
 
 namespace jadel
 {
@@ -14,7 +15,7 @@ namespace jadel
         int ival;
         double dval;
         va_start(ap, content); /* make ap point to 1st unnamed arg */
-        memset(stringBuffer, 0, 50);
+        memset(jadelMessageStringBuffer, 0, JADEL_MESSAGE_STRING_BUFFER_SIZE);
         for (p = content; *p; p++)
         {
             if (*p != '%')
@@ -26,13 +27,13 @@ namespace jadel
             {
             case 'd':
                 ival = va_arg(ap, int);
-                sprintf(stringBuffer, "%d", ival);
-                writeToConsole(stringBuffer, strlen(stringBuffer));
+                snprintf(jadelMessageStringBuffer, JADEL_MESSAGE_STRING_BUFFER_SIZE, "%d", ival);
+                writeToConsole(jadelMessageStringBuffer, strlen(jadelMessageStringBuffer));
                 break;
             case 'f':
                 dval = va_arg(ap, double);
-                sprintf(stringBuffer, "%f", dval);
-                writeToConsole(stringBuffer, strlen(stringBuffer));
+                snprintf(jadelMessageStringBuffer, JADEL_MESSAGE_STRING_BUFFER_SIZE, "%f", dval);
+                writeToConsole(jadelMessageStringBuffer, strlen(jadelMessageStringBuffer));
                 break;
             case 's':
                 for (sval = va_arg(ap, char *); *sval; sval++)
