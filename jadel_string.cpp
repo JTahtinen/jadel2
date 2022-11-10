@@ -76,6 +76,7 @@ namespace jadel
             return false;
         }
         size_t len = strlen(content);
+        printf("Hello");
         init(string, len);
         if (string->isSmallString)
         {

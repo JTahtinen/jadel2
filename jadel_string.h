@@ -34,51 +34,52 @@ namespace jadel
         String operator+(const char* other) const;
     };
     
-    static char stringBuffer[50];
+    #define JADEL_VAL_TO_STRING_BUFFER_SIZE (50)
+    static char valueToStringBuffer[JADEL_VAL_TO_STRING_BUFFER_SIZE] = {0};
     
     inline String toString(int val)
     {
-        sprintf(stringBuffer, "%d", val);
+        snprintf(valueToStringBuffer, JADEL_VAL_TO_STRING_BUFFER_SIZE, "%d", val);
         // message("%s\n", stringBuffer);
         String result;
-        String::init(&result, stringBuffer);
+        String::init(&result, valueToStringBuffer);
         return result;
     }
 
     
     inline String toString(size_t val)
     {
-        sprintf(stringBuffer, "%zd", val);
+        snprintf(valueToStringBuffer, JADEL_VAL_TO_STRING_BUFFER_SIZE, "%zd", val);
         // message("%s\n", stringBuffer);
         String result;
-        String::init(&result, stringBuffer);
+        String::init(&result, valueToStringBuffer);
         return result;
     }
 
     inline String toString(unsigned int val)
     {
-        sprintf(stringBuffer, "%d", val);
+        snprintf(valueToStringBuffer, JADEL_VAL_TO_STRING_BUFFER_SIZE - 1, "%d", val);
         // message("%s\n", stringBuffer);
         String result;
-        String::init(&result, stringBuffer);
+        String::init(&result, valueToStringBuffer);
         return result;
     }
 
     inline String toString(float val)
     {
-        sprintf(stringBuffer, "%f", val);
+        snprintf(valueToStringBuffer, JADEL_VAL_TO_STRING_BUFFER_SIZE - 1, "%f", val);
         // message("%s\n", stringBuffer);
         String result;
-        String::init(&result, stringBuffer);
+        String::init(&result, valueToStringBuffer);
         return result;
     }
 
     inline String toString(double val)
     {
-        sprintf(stringBuffer, "%f", val);
+        snprintf(valueToStringBuffer, JADEL_VAL_TO_STRING_BUFFER_SIZE - 1, "%f", val);
         // message("%s\n", stringBuffer);
         String result;
-        String::init(&result, stringBuffer);
+        String::init(&result, valueToStringBuffer);
         return result;
     }
 }
