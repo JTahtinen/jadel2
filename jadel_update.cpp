@@ -177,22 +177,28 @@ LRESULT CALLBACK WndProc(
         inputMouseY = GET_Y_LPARAM(lParam);
         return 0;
     case WM_LBUTTONDOWN:
-        inputLButtonDown = true;
+        inputLButtonClicked = true;
+        inputLButtonHeld = true;
         return 0;
     case WM_LBUTTONUP:
-        inputLButtonDown = false;
+        inputLButtonReleased = true;
+        inputLButtonHeld = false;
         return 0;
     case WM_RBUTTONDOWN:
-        inputRButtonDown = true;
+        inputRButtonClicked = true;
+        inputRButtonHeld = true;
         return 0;
     case WM_RBUTTONUP:
-        inputRButtonDown = false;
+        inputRButtonReleased = true;
+        inputRButtonHeld = false;
         return 0;
     case WM_MBUTTONDOWN:
-        inputMButtonDown = true;
+        inputMButtonClicked = true;
+        inputMButtonHeld = true;
         return 0;
     case WM_MBUTTONUP:
-        inputMButtonDown = false;
+        inputMButtonReleased = true;
+        inputMButtonHeld = false;
         return 0;
     case WM_MOUSEWHEEL:
         inputMWheel = GET_WHEEL_DELTA_WPARAM(wParam) / 120;

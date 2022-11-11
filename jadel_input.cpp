@@ -3,7 +3,7 @@
 
 namespace jadel
 {
-    const jadel::Window* inputCurrentWindow = NULL;
+    const jadel::Window *inputCurrentWindow = NULL;
     int windowWidth = 0;
     int windowHeight = 0;
     int windowHalfW = 0;
@@ -15,14 +15,25 @@ namespace jadel
 
     int inputMouseX = 0;
     int inputMouseY = 0;
-    bool inputLButtonDown = false;
-    bool inputRButtonDown = false;
-    bool inputMButtonDown = false;
+
+    bool inputLButtonClicked = false;
+    bool inputRButtonClicked = false;
+    bool inputMButtonClicked = false;
+
+    bool inputLButtonReleased = false;
+    bool inputRButtonReleased = false;
+    bool inputMButtonReleased = false;
+
+    bool inputLButtonHeld = false;
+    bool inputRButtonHeld = false;
+    bool inputMButtonHeld = false;
+
     int inputMWheel = 0;
 
-    void inputSetCurrentWindow(const Window* win)
+    void inputSetCurrentWindow(const Window *win)
     {
-        if (!win) return;
+        if (!win)
+            return;
         inputCurrentWindow = win;
         inputUpdateCurrentWindow();
     }
@@ -77,7 +88,7 @@ namespace jadel
         float result = (float)(mousePosX - windowHalfW) / (float)windowHalfW;
         return result;
     }
-    
+
     float inputGetMouseYRelative()
     {
         int mousePosY = inputGetMouseY();
@@ -97,6 +108,42 @@ namespace jadel
         return result;
     }
 
+    bool inputIsMouseLeftClicked()
+    {
+        bool result = inputLButtonClicked;
+        return result;
+    }
+
+    bool inputIsMouseLeftHeld()
+    {
+        bool result = inputLButtonHeld;
+        return result;
+    }
+
+    bool inputIsMouseRightClicked()
+    {
+        bool result = inputRButtonClicked;
+        return result;
+    }
+
+    bool inputIsMouseRightHeld()
+    {
+        bool result = inputRButtonHeld;
+        return result;
+    }
+
+    bool inputIsMouseMiddleClicked()
+    {
+        bool result = inputMButtonClicked;
+        return result;
+    }
+
+    bool inputIsMouseMiddleHeld()
+    {
+        bool result = inputMButtonHeld;
+        return result;
+    }
+
     void inputUpdate()
     {
         inputMWheel = 0;
@@ -105,5 +152,8 @@ namespace jadel
             inputKeysReleased[i] = false;
             inputKeysTyped[i] = false;
         }
+        inputLButtonClicked = false;
+        inputRButtonClicked = false;
+        inputMButtonClicked = false;
     }
 }
