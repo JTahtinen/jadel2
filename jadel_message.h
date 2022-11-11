@@ -1,6 +1,7 @@
 #pragma once
+#include "jadel_defs.h"
 
 namespace jadel
 {
-    void message(const char *content, ...);
+    DECLSPEC void message(const char *content, ...);
 }
