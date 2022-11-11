@@ -29,23 +29,47 @@ namespace jadel
 
     DECLSPEC Point2i inputGetMousePos();
 
+    DECLSPEC bool inputIsMouseLeftClicked();
+
+    DECLSPEC bool inputIsMouseLeftHeld();
+
+    DECLSPEC bool inputIsMouseRightClicked();
+
+    DECLSPEC bool inputIsMouseRightHeld();
+
+    DECLSPEC bool inputIsMouseMiddleClicked();
+
+    DECLSPEC bool inputIsMouseMiddleHeld();
+
     DECLSPEC void inputUpdate();
 
-    DECLSPEC extern bool inputKeysPressed[jadel::NUM_KEYS - 1];
+    extern bool inputKeysPressed[jadel::NUM_KEYS - 1];
 
-    DECLSPEC extern bool inputKeysReleased[jadel::NUM_KEYS - 1];
+    extern bool inputKeysReleased[jadel::NUM_KEYS - 1];
 
-    DECLSPEC extern bool inputKeysTyped[jadel::NUM_KEYS - 1];
+    extern bool inputKeysTyped[jadel::NUM_KEYS - 1];
 
-    DECLSPEC extern int inputMouseX;
+    extern int inputMouseX;
 
-    DECLSPEC extern int inputMouseY;
+    extern int inputMouseY;
 
-    DECLSPEC extern bool inputLButtonDown;
+    extern bool inputLButtonClicked;
 
-    DECLSPEC extern bool inputRButtonDown;
+    extern bool inputRButtonClicked;
 
-    DECLSPEC extern bool inputMButtonDown;
+    extern bool inputMButtonClicked;
 
-    DECLSPEC extern int inputMWheel;
+    extern bool inputLButtonReleased;
+
+    extern bool inputRButtonReleased;
+
+    extern bool inputMButtonReleased;
+
+    extern bool inputLButtonHeld;
+
+    extern bool inputRButtonHeld;
+
+    extern bool inputMButtonHeld;
+
+    extern int inputMWheel;
 }
