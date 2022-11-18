@@ -120,6 +120,12 @@ namespace jadel
         return result;
     }
 
+    bool inputIsMouseLeftReleased()
+    {
+        bool result = inputLButtonReleased;
+        return result;
+    }
+
     bool inputIsMouseRightClicked()
     {
         bool result = inputRButtonClicked;
@@ -129,6 +135,12 @@ namespace jadel
     bool inputIsMouseRightHeld()
     {
         bool result = inputRButtonHeld;
+        return result;
+    }
+
+    bool inputIsMouseRightReleased()
+    {
+        bool result = inputRButtonReleased;
         return result;
     }
 
@@ -144,6 +156,12 @@ namespace jadel
         return result;
     }
 
+    bool inputIsMouseMiddleReleased()
+    {
+        bool result = inputMButtonReleased;
+        return result;
+    }
+
     void inputUpdate()
     {
         inputMWheel = 0;
@@ -152,8 +170,14 @@ namespace jadel
             inputKeysReleased[i] = false;
             inputKeysTyped[i] = false;
         }
+
         inputLButtonClicked = false;
         inputRButtonClicked = false;
         inputMButtonClicked = false;
+
+        inputLButtonReleased = false;
+        inputRButtonReleased = false;
+        inputMButtonReleased = false;
+
     }
 }

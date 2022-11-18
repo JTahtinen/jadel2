@@ -33,13 +33,19 @@ namespace jadel
 
     DECLSPEC bool inputIsMouseLeftHeld();
 
+    DECLSPEC bool inputIsMouseLeftReleased();
+
     DECLSPEC bool inputIsMouseRightClicked();
 
     DECLSPEC bool inputIsMouseRightHeld();
 
+    DECLSPEC bool inputIsMouseRightReleased();
+
     DECLSPEC bool inputIsMouseMiddleClicked();
 
     DECLSPEC bool inputIsMouseMiddleHeld();
+
+    DECLSPEC bool inputIsMouseMiddleReleased();
 
     DECLSPEC void inputUpdate();
 
