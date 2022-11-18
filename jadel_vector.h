@@ -3,6 +3,8 @@
 #include "jadel_defs.h"
 #include <string.h>
 #include <stdlib.h>
+#include "jadel_memory.h"
+
 namespace jadel
 {
     template <typename T>
@@ -16,11 +18,10 @@ namespace jadel
             : size(0)
             , capacity(capacity)
         {            
-            data = (T *)malloc(sizeof(T) * capacity);
+            data = (T *)memoryReserve(sizeof(T) * capacity);
         }
 
         Vector()
-            : Vector(10)
         {
         }
 
@@ -89,6 +90,11 @@ namespace jadel
             else
                 result = NULL;
             return result;
+        }
+
+        void clear()
+        {
+            size = 0;
         }
 
         const T &get(size_t index) const
