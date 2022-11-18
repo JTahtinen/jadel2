@@ -64,8 +64,13 @@ LRESULT CALLBACK WndProc(
     WPARAM wParam,
     LPARAM lParam);
 
-bool JadelInit()
+bool JadelInit(size_t bytesOfMemoryToReserve)
 {
+    if (bytesOfMemoryToReserve < KB(1))
+    {
+        bytesOfMemoryToReserve = KB(1);
+    }
+    jadel::memoryInit(bytesOfMemoryToReserve);
     determineEndianness();
     graphicsInit();
     WNDCLASSEX wc;
