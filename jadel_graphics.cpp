@@ -6,6 +6,7 @@
 #include <xmmintrin.h>
 #include <memory.h>
 #include "jadel_array.h"
+#include "jadel_stack.h"
 #include "jadel_util.h"
 
 namespace jadel
@@ -32,7 +33,8 @@ namespace jadel
 
     static Surface *targetSurfaceData;
 
-    static Array<TargetSurface> targetSurfaceStack(TARGET_SURFACE_STACK_SIZE);
+//    static Array<TargetSurface> targetSurfaceStack(TARGET_SURFACE_STACK_SIZE);
+    static Stack<TargetSurface> targetSurfaceStack;
 
     static uint32 clearColor = 0;
 
@@ -52,17 +54,18 @@ namespace jadel
             gIndex = 2;
             bIndex = 3;
         }
+        targetSurfaceStack.init(TARGET_SURFACE_STACK_SIZE);
     }
 
     int getTextureCoordPixelX(float x, const Surface* surface)
     {
-        int result = (int)(x * (float)surface->width);
+        int result = roundToInt(x * (float)surface->width);
         return result;
     }
 
     int getTextureCoordPixelY(float y, const Surface* surface)
     {
-        int result = (int)(y * (float)surface->height);
+        int result = roundToInt(y * (float)surface->height);
         return result;
     }
 
@@ -94,7 +97,7 @@ namespace jadel
 
     bool graphicsPushTargetSurface(Surface *target)
     {
-        if (!target || targetSurfaceStack.size == TARGET_SURFACE_STACK_SIZE)
+        if (!target || targetSurfaceStack.size() == TARGET_SURFACE_STACK_SIZE)
             return false;
         TargetSurface t;
         t.surface = target;
@@ -104,18 +107,18 @@ namespace jadel
         t.halfHeight = target->height / 2;
         t.rect = {0, 0, target->width, target->height};
         targetSurfaceStack.push(t);
-        targetSurface = &targetSurfaceStack.back();
+        targetSurface = &targetSurfaceStack.top();
         targetSurfaceData = targetSurface->surface;
         return true;
     }
 
-    bool graphicsPopTargetSurface()
+    void graphicsPopTargetSurface()
     {
-        if (!targetSurfaceStack.pop())
-            return false;
-        if (targetSurfaceStack.size > 0)
+        targetSurfaceStack.pop();
+
+        if (targetSurfaceStack.size() > 0)
         {
-            targetSurface = &targetSurfaceStack.back();
+            targetSurface = &targetSurfaceStack.top();
             targetSurfaceData = targetSurface->surface;
         }
         else
@@ -123,7 +126,6 @@ namespace jadel
             targetSurface = NULL;
             targetSurfaceData = NULL;
         }
-        return true;
     }
 
     void graphicsDrawPixelFast(int x, int y, uint32 color)
@@ -451,25 +453,29 @@ namespace jadel
         }
     }
 
-    void graphicsMultiplyPixelValues(float val)
+    void graphicsMultiplyPixelValues(float r, float g, float b)
     {
-        //__vector unsigned char cs = (__vector unsigned char){1, 2, 3, 4, 2, 4, 5, 5, 1, 2, 3, 4, 2, 4, 5, 5};
         uint8 *pixelElements = (uint8 *)targetSurfaceData->pixels;
         for (int i = 0; i < targetSurface->width * targetSurface->width; ++i)
         {
-            unsigned int temp = pixelElements[i * 4 + rIndex] * val;
+            unsigned int temp = pixelElements[i * 4 + rIndex] * r;
             if (temp > 255)
                 temp = 255;
             pixelElements[i * 4 + rIndex] = temp;
-            temp = pixelElements[i * 4 + gIndex] * val;
+            temp = pixelElements[i * 4 + gIndex] * g;
             if (temp > 255)
                 temp = 255;
             pixelElements[i * 4 + gIndex] = temp;
-            temp = pixelElements[i * 4 + bIndex] * val;
+            temp = pixelElements[i * 4 + bIndex] * b;
             if (temp > 255)
                 temp = 255;
             pixelElements[i * 4 + bIndex] = temp;
         }
+    }
+
+    void graphicsMultiplyPixelValues(float val)
+    {
+        graphicsMultiplyPixelValues(val, val, val);
     }
 
     bool graphicsCreateSurface(int width, int height, Surface *target)
