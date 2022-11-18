@@ -18,5 +18,5 @@ namespace jadel
     extern int numWindows;
 }
 
-extern DECLSPEC bool JadelInit();
+extern DECLSPEC bool JadelInit(size_t bytesOfMemoryToReserve);
 extern DECLSPEC void JadelUpdate();

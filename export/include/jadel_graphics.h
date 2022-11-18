@@ -45,7 +45,7 @@ namespace jadel
     extern DECLSPEC int getRelativeY(float y, Recti rect);
     extern DECLSPEC Point2i getRelativePoint(float x, float y, Recti rect);
     extern DECLSPEC bool graphicsPushTargetSurface(Surface *target);
-    extern DECLSPEC bool graphicsPopTargetSurface();
+    extern DECLSPEC void graphicsPopTargetSurface();
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, uint32 color);
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, float a, float r, float g, float b);
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, Color color);
@@ -70,6 +70,7 @@ namespace jadel
     extern DECLSPEC void graphicsBlitRelative(const Surface *source, Rectf targetRect);
     extern DECLSPEC bool graphicsCopyEqualSizeSurface(const Surface* source);
     extern DECLSPEC void graphicsFill(unsigned int color);
+    extern DECLSPEC void graphicsMultiplyPixelValues(float r, float g, float b);
     extern DECLSPEC void graphicsMultiplyPixelValues(float val);
     extern DECLSPEC bool graphicsCreateSurface(int width, int height, Surface *target);
     extern DECLSPEC uint32 graphicsCreateColor(uint8 a, uint8 r, uint8 g, uint8 b);

@@ -144,7 +144,6 @@ namespace jadel
             if (!head)
                 return false;
             Node<T> *current = head;
-
             while (current->data != value)
             {
                 if (!current->next)
@@ -226,6 +225,11 @@ namespace jadel
             result->next = NULL;
             result->data = data;
             return result;
+        }
+
+        Node<T>& getNextNode(Node<T>& node)
+        {
+            return node->next;
         }
     };
 }
