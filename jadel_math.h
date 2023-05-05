@@ -109,4 +109,10 @@ namespace jadel
         int result = val < 0 ? -val : val;
         return result;
     }
+
+    inline float absFloat(float val)
+    {
+        float result = val < 0 ? -val : val;
+        return result;
+    }
 }
