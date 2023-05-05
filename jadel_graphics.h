@@ -55,6 +55,9 @@ namespace jadel
     extern DECLSPEC void graphicsDrawRect(Recti rect, Color color);
     extern DECLSPEC void graphicsDrawRectRelative(float xStart, float yStart, float xEnd, float yEnd, Color color);
     extern DECLSPEC void graphicsDrawRectRelative(Rectf rect, Color color);
+    extern DECLSPEC void graphicsDrawLineRelative(float xStart, float yStart, float xEnd, float yEnd, Color color);
+    extern DECLSPEC void graphicsDrawLineRelative(Vec2 start, Vec2 end, Color color);
+    extern DECLSPEC void graphicsDrawTriangleRelative(Vec2 point0, Vec2 point1, Vec2 point2, Color color);
     extern DECLSPEC uint32 graphicsConvertColorToU32(Color color);
     extern DECLSPEC Color graphicsConvertU32ToColor(unsigned int color);
     extern DECLSPEC uint32 graphicsBlendColors(Color foreground, Color background);
