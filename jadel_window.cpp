@@ -19,18 +19,24 @@ namespace jadel
             return false;
         }   
         RECT clientRect;
+        RECT windowRect = {0, 0, width, height};
+        /*AdjustWindowRectEx(
+            &windowRect,
+            0,
+            0,
+            0);*/ 
         HWND windowHandle = CreateWindowEx(0,
                                            className,
                                            title,
                                            WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                                            CW_USEDEFAULT, CW_USEDEFAULT,
-                                           width, height,
+                                           windowRect.right - windowRect.left, 
+                                           windowRect.bottom - windowRect.top,
                                            NULL,
                                            NULL,
                                            myHInstance,
                                            NULL);
 
-        RECT windowRect;
         GetWindowRect(windowHandle, &windowRect);
         GetClientRect(windowHandle, &clientRect);
         POINT ptDiff;
@@ -41,8 +47,8 @@ namespace jadel
         if (!windowHandle)
             return false;
 
-        target->width = windowRect.right - windowRect.left;
-        target->height = windowRect.bottom - windowRect.top;
+        target->width = width;
+        target->height = height;
         target->hWnd = windowHandle;
 
         target->bitmapInfo.bmiHeader.biSize = sizeof(target->bitmapInfo.bmiHeader);
