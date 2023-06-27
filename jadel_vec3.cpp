@@ -32,6 +32,15 @@ namespace jadel
         return result;
     }
 
+    Vec3 Vec3::cross(Vec3 other) const
+    {
+        Vec3 result;
+        result.x = y * other.z - z * other.y;
+        result.y = z * other.x - x * other.z;
+        result.z = x * other.y - y * other.x;
+        return result;
+    }
+
     float Vec3::length() const
     {
         float result = sqrtf(x * x + y * y + z * z);
