@@ -16,7 +16,11 @@ namespace jadel
     DECLSPEC bool inputIsKeyReleased(uint32 key);
 
     DECLSPEC bool inputIsKeyTyped(uint32 key);
+
+    DECLSPEC void inputSetRelativeMouseMode(bool val);
     
+    DECLSPEC void inputSetCursorVisible(bool val);
+
     DECLSPEC int inputGetMouseX();
     
     DECLSPEC int inputGetMouseY();
@@ -27,7 +31,17 @@ namespace jadel
 
     DECLSPEC jadel::Vec2 inputGetMouseRelative();
 
-    DECLSPEC Point2i inputGetMousePos();
+    DECLSPEC int inputGetMouseDeltaX();
+
+    DECLSPEC int inputGetMouseDeltaY();
+
+    DECLSPEC float inputGetMouseDeltaXRelative();
+    
+    DECLSPEC float inputGetMouseDeltaYRelative();
+
+    DECLSPEC jadel::Vec2 inputGetMouseDeltaRelative();
+
+    DECLSPEC Point2i inputGetMouseDelta();
 
     DECLSPEC bool inputIsMouseLeftClicked();
 
@@ -49,6 +63,8 @@ namespace jadel
 
     DECLSPEC void inputUpdate();
 
+    void inputReset();
+
     extern bool inputKeysPressed[jadel::NUM_KEYS - 1];
 
     extern bool inputKeysReleased[jadel::NUM_KEYS - 1];
@@ -58,6 +74,10 @@ namespace jadel
     extern int inputMouseX;
 
     extern int inputMouseY;
+
+    extern int inputMouseDeltaX;
+    
+    extern int inputMouseDeltaY;
 
     extern bool inputLButtonClicked;
 
