@@ -12,6 +12,7 @@ namespace jadel
         Vec3 add(Vec3 v1) const;
         Vec3 subst(Vec3 v1) const;
         Vec3 mul(float val) const;
+        Vec3 cross(Vec3 other) const;
         float length() const;
         Vec3 normalize() const;
     };
@@ -54,7 +55,7 @@ namespace jadel
 
     inline bool operator==(Vec3 left, Vec3 right)
     {
-        bool result = (left.x == right.x && left.y == right.y);
+        bool result = (left.x == right.x && left.y == right.y && left.z == right.z);
         return result;
     }
 

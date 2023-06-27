@@ -97,13 +97,14 @@ bool JadelInit(size_t bytesOfMemoryToReserve)
 
 void JadelUpdate()
 {
+    inputReset();
     MSG msg;
-    inputUpdate();
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+    inputUpdate();
 }
 
 jadel::Window* findWindow(HWND hWnd)

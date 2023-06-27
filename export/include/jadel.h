@@ -25,7 +25,9 @@ extern "C" int JadelMain();
 #include "jadel_endian.h"
 #include "jadel_vec2.h"
 #include "jadel_vec3.h"
+#include "jadel_vec4.h"
 #include "jadel_mat3.h"
+#include "jadel_mat4.h"
 #include "jadel_factory.h"
 
 #endif
