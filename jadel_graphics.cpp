@@ -236,6 +236,17 @@ namespace jadel
             xStartPixel = end.x;
             xEndPixel = start.x;
         }
+
+        if (xEndPixel < 0) return;
+        if (xStartPixel >= targetSurface->width) return;
+        if (end.y < 0) return;
+        if (start.y >= targetSurface->height) return; 
+
+        if (xEndPixel > targetSurface->width) xEndPixel = targetSurface->width;
+        if (xStartPixel < 0) xStartPixel = 0;
+        if (end.y > targetSurface->height) end.y = targetSurface->height;
+        if (start.y < 0) start.y = 0;
+
         if (start.y == end.y)
         {
             for (int x = 0; x < xEndPixel - xStartPixel; ++x)
