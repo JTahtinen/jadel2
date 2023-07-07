@@ -83,7 +83,7 @@ namespace jadel
         }
 
         block->reserved = true;
-        jadel::message("Reserved %d bytes\n", bytes);
+        //jadel::message("Reserved %d bytes\n", bytes);
         numAllocatedBytes += bytes;
         ++numAllocatedBlocks;
         // No need to do more processing if the block is already precisely the correct size
@@ -134,7 +134,7 @@ namespace jadel
             if (!memBlock)
                 return false;
         }
-        jadel::message("Freed %d bytes\n", memBlock->size);
+        //jadel::message("Freed %d bytes\n", memBlock->size);
         numAllocatedBytes -= memBlock->size;
         --numAllocatedBlocks;
         memBlock->reserved = false;
