@@ -67,6 +67,35 @@ namespace jadel
         float y0;
         float x1;
         float y1;
+
+        Rectf(float x0, float y0, float x1, float y1)
+            : x0(x0)
+            , y0(y0)
+            , x1(x1)
+            , y1(y1)
+        {
+        }
+        
+        Rectf(Vec2 p0, Vec2 p1)
+            : Rectf(p0.x, p0.y, p1.x, p1.y)
+        {
+        }
+
+        Rectf()
+        {
+        }
+
+        Vec2 getPoint0() const
+        {
+            Vec2 result(x0, y0);
+            return result;
+        }
+
+        Vec2 getPoint1() const
+        {
+            Vec2 result(x1, y1);
+            return result;
+        }
     };
 
     inline float clampf(float val, float min, float max)

@@ -12,6 +12,7 @@ namespace jadel
         Vec2 subst(Vec2 v1) const;
         Vec2 mul(float val) const;
         float length() const;
+        float dot(Vec2 b) const;
         Vec2 normalize() const;
     };
 
