@@ -30,6 +30,8 @@ TCHAR jadel::className[] = _T("JADELClass");
 Window* jadel::windowList[10];
 int jadel::numWindows = 0;
 
+static bool isInitialized = false;
+
 namespace jadel
 {
     int allocateConsole()
@@ -70,7 +72,10 @@ bool JadelInit(size_t bytesOfMemoryToReserve)
     {
         bytesOfMemoryToReserve = KB(1);
     }
-    jadel::memoryInit(bytesOfMemoryToReserve);
+    if (!jadel::memoryInit(bytesOfMemoryToReserve))
+    {
+        return false;
+    }
     determineEndianness();
     graphicsInit();
     WNDCLASSEX wc;
@@ -92,6 +97,7 @@ bool JadelInit(size_t bytesOfMemoryToReserve)
         MessageBox(NULL, (LPCSTR) "Window class registering failed", (LPCSTR) "Error!", 0);
         return false;
     }
+    isInitialized = true;
     return true;
 }
 
@@ -211,4 +217,9 @@ LRESULT CALLBACK WndProc(
         return 0;
     }
     return (DefWindowProc(hWnd, message, wParam, lParam));
+}
+
+bool JadelIsInitialized()
+{
+    return isInitialized;
 }

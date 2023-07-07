@@ -20,3 +20,4 @@ namespace jadel
 
 extern DECLSPEC bool JadelInit(size_t bytesOfMemoryToReserve);
 extern DECLSPEC void JadelUpdate();
+extern DECLSPEC bool JadelIsInitialized();
