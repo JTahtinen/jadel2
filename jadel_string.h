@@ -3,15 +3,15 @@
 #include <stdio.h>
 #include "jadel_defs.h"
 
-#define JADEL_SMALL_STRING_SIZE (50)
+//#define JADEL_SMALL_STRING_SIZE (50)
 namespace jadel
 {
     struct DECLSPEC String
     {
-        char smallString[JADEL_SMALL_STRING_SIZE + 1];
+        //char smallString[JADEL_SMALL_STRING_SIZE + 1];
         char *content;
         size_t size;
-        bool isSmallString;
+  //      bool isSmallString;
 
         // String(const char *content);
         // String(const String& other);
@@ -19,8 +19,10 @@ namespace jadel
         //~String();
         String();
         String(const char* content);
+        String(size_t length);
         static bool init(String *string, size_t length);
         static bool init(String *string, const char *content);
+        bool set(const char* content);
         void free();
         const char *c_str() const;
         char *c_str();
@@ -35,6 +37,7 @@ namespace jadel
     };
     
     #define JADEL_VAL_TO_STRING_BUFFER_SIZE (50)
+    
     static char valueToStringBuffer[JADEL_VAL_TO_STRING_BUFFER_SIZE] = {0};
     
     inline String toString(int val)
@@ -45,7 +48,6 @@ namespace jadel
         String::init(&result, valueToStringBuffer);
         return result;
     }
-
     
     inline String toString(size_t val)
     {

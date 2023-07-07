@@ -48,23 +48,28 @@ namespace jadel
         init(this, content);
     }
 
+    String::String(size_t length)
+    {
+        init(this, length);
+    }
+
     bool String::init(String *string, size_t length)
     {
         if (!string || length == 0)
         {
             return false;
         }
-        if (length <= JADEL_SMALL_STRING_SIZE)
+/*        if (length <= JADEL_SMALL_STRING_SIZE)
         {
             string->isSmallString = true;
             string->smallString[length] = '\0';
-        }
-        else
-        {
-            string->isSmallString = false;
+        }*/
+        //else
+        //{
+        //    string->isSmallString = false;
             string->content = (char *)jadel::memoryReserve(length + 1);
             string->content[length] = '\0';
-        }
+        //}
         string->size = length;
         return true;
     }
@@ -76,22 +81,37 @@ namespace jadel
             return false;
         }
         size_t len = strlen(content);
-        printf("Hello");
         init(string, len);
-        if (string->isSmallString)
+        /*if (string->isSmallString)
         {
             memmove(string->smallString, content, len);
         }
-        else
+        else*/
         {
             memmove(string->content, content, len);
         }
         return true;
     }
 
+    bool String::set(const char* content)
+    {
+        size_t len = strlen(content);
+        if (len > this->size)
+        {
+            char* newContent = (char*)jadel::memoryReserve(len + 1); 
+            if (!newContent) return false;
+            jadel::memoryFree(this->content);
+            this->content = newContent;
+            size = len;
+        }
+        memmove(this->content, content, len);
+        this->content[len] = '\0';
+        return true;
+    }
+
     void String::free()
     {
-        if (!this->isSmallString)
+        //if (!this->isSmallString)
         {
             jadel::memoryFree(content);
         }
@@ -103,11 +123,11 @@ namespace jadel
     {
         if (size == 0) return NULL;
         const char* result;
-        if (this->isSmallString)
+        /*if (this->isSmallString)
         {
             result = smallString;
         }
-        else
+        else*/
         {
             result = content;
         }
@@ -117,11 +137,11 @@ namespace jadel
     {
         if (size == 0) return NULL;
         char* result;
-        if (this->isSmallString)
+        /*if (this->isSmallString)
         {
             result = smallString;
         }
-        else
+        else*/
         {
             result = content;
         }
@@ -131,11 +151,11 @@ namespace jadel
     char String::operator[](size_t index) const
     {
         char result;
-        if (this->isSmallString)
+        /*if (this->isSmallString)
         {
             result = smallString[index];
         }
-        else
+        else*/
         {
             result = content[index];
         }
@@ -157,11 +177,11 @@ namespace jadel
     bool String::operator==(const char *other) const
     {
         bool result;
-        if (this->isSmallString)
+        /*if (this->isSmallString)
         {
             result = strncmp(this->smallString, other, this->size) == 0;
         }
-        else
+        else*/
         { 
             result = strncmp(this->content, other, this->size) == 0;
         }
