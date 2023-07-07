@@ -34,7 +34,7 @@ namespace jadel
         
         void freeVector()
         {
-            free(data);
+            jadel::memoryFree(data);
             data = NULL;
         }
 
@@ -106,12 +106,13 @@ namespace jadel
 
         bool resize(size_t newCap)
         {
-            T *newData = (T *)malloc(sizeof(T) * newCap);
+            if (newCap == capacity) return true;
+            T *newData = (T *)jadel::memoryReserve(sizeof(T) * newCap);
             if (!newData)
                 return false;
             memmove(newData, data, size * sizeof(T));
             capacity = newCap;
-            free(data);
+            jadel::memoryFree(data);
             data = newData;
             return true;
         }
@@ -133,7 +134,7 @@ namespace jadel
     inline bool vectorInit(size_t capacity, Vector<T>* target)
     {
         if (!target) return false;
-        target->data = (T*)malloc(sizeof(T) * capacity);
+        target->data = (T*)jadel::memoryReserve(sizeof(T) * capacity);
         if (!target->data) return false;
         target->capacity = capacity;
         target->size = 0;
