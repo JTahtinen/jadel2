@@ -38,6 +38,12 @@ namespace jadel
         return result;
     }
 
+    float Vec2::dot(Vec2 b) const
+    {
+        float result = x * b.x + y * b.y;
+        return result;
+    }
+
     Vec2 Vec2::normalize() const
     {
         float len = length();
