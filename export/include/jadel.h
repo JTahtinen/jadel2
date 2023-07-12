@@ -1,7 +1,7 @@
 #ifndef JADEL_H
 #define JADEL_H
 
-extern "C" int JadelMain();
+extern "C" int JadelMain(int argc, char** argv);
 
 #include "jadel_defs.h"
 #include "jadel_array.h"
