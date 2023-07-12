@@ -7,11 +7,57 @@
 #include "jadel_graphics.h"
 #include "jadel_memory.h"
 #include "jadel_message.h"
+#include "jadel_defs.h"
 
 #include <stdlib.h>
 
 namespace jadel
 {
+    enum 
+    {
+        BINARY_FILE_INIT_EMPTY,
+        BINARY_FILE_INIT_FILLED
+    };
+
+    struct DECLSPEC BinaryFile
+    {
+        void* data;
+        size_t fileBufferSize;
+        size_t numBytesWritten;
+        uint8* pointerToLastWrittenByte;
+        uint8* pointerToLastReadByte;
+
+        BinaryFile(size_t size);
+        BinaryFile(const char* filepath);
+        BinaryFile() = default;
+           
+        size_t numBytesRead() const;
+        
+        void close();
+        bool init(void* data, size_t size, uint32 initFlag);
+        bool init(size_t size);
+        bool init(const char* filepath);
+        bool setWritePointerOffset(size_t offset);
+        bool setReadPointerOffset(size_t offset);
+
+        bool writeNBytes(size_t numBytes, void* src);
+        bool writeInt(int val);
+        bool writeUint32(uint32 val);
+        bool writeUint64(uint64 val);
+        bool writeBool(bool val);
+        bool writeFloat(float val);
+        bool writeDouble(double val);
+
+        bool readNBytes(void* dst, size_t numBytes);
+        bool readInt(int* dst);
+        bool readUint32(uint32* dst);
+        bool readUint64(uint64* dst);
+        bool readBool(bool* dst);
+        bool readFloat(float* dst);
+        bool readDouble(double* dst);
+
+        bool writeToFile(const char* filepath);
+    };
     
     inline size_t getFileSize(FILE *fp)
     {
@@ -70,13 +116,13 @@ namespace jadel
         return result;
     }
 
-    inline bool readBinaryFile(const char *filepath, void *buffer, size_t bufferSize, size_t *numBytes)
+    inline bool readBinaryFile(const char *filepath, void *buffer, size_t bufferSize, size_t *numBytesRead)
     {
         FILE *fp = fopen(filepath, "rb");
         if (!fp)
             return false;
 
-        *numBytes = 0;
+        *numBytesRead = 0;
 
         fseek(fp, 0, SEEK_END);
         size_t fileSize = ftell(fp);
@@ -88,7 +134,7 @@ namespace jadel
             return false;
         }
         fread(buffer, fileSize, 1, fp);
-        *numBytes = fileSize;
+        *numBytesRead = fileSize;
         return true;
     }
 
@@ -104,6 +150,19 @@ namespace jadel
         fclose(fp);
         return true;
     }
+
+    inline bool writeBinaryFile(const char* filepath, const void* data, size_t sizeInBytes)
+    {
+        FILE *fp = fopen(filepath, "wb");
+        if (!fp)
+            return false;
+
+        fwrite(data, sizeInBytes, 1, fp);
+
+        fclose(fp);
+        return true;
+    }
+    
 
     struct BMPHeader
     {
