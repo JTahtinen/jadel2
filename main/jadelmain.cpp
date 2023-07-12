@@ -2,9 +2,9 @@
 #include <windowsx.h>
 #include <tchar.h>
 #include <string.h> 
-//#include "winapptest.h"
+#include <shellapi.h>
 
-extern "C" int JadelMain();
+extern "C" int JadelMain(int argc, char** argv);
 
 namespace jadel
 {
@@ -19,5 +19,5 @@ int WINAPI WinMain(
     int nCmdShow)
 {
     jadel::myHInstance = hInstance;
-    return JadelMain();
+    return JadelMain(__argc, __argv);
 }
