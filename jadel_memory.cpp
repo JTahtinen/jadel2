@@ -6,11 +6,6 @@
 
 namespace jadel
 {
-
-    static size_t totalAllocationSize = 0;
-    static size_t numAllocatedBlocks = 0;
-    static size_t numAllocatedBytes = 0;
-
     struct MemoryBlock
     {
         uint8 *pointer;
@@ -30,14 +25,26 @@ namespace jadel
         }
     };
 
-    static uint8 *memoryAllocation;
-    static size_t numBytesAllocated;
-
+    static uint8 *memoryPool;
+    static size_t memoryPoolSize;
+    static size_t numAllocatedBlocks = 0;
+    static size_t numAllocatedBytes = 0;
     static LinkedList<MemoryBlock> freeList;
+
+    static uint8 *getEndOfBlock(const MemoryBlock *block)
+    {
+        uint8 *result = block->pointer + block->size;
+        return result;
+    }
+
+    static uint8 *getMemoryPoolEnd()
+    {
+        return memoryPool + memoryPoolSize;
+    }
 
     static size_t getMemoryOffset(uint8 *pointer)
     {
-        size_t result = pointer - memoryAllocation;
+        size_t result = pointer - memoryPool;
         return result;
     }
 
@@ -50,40 +57,70 @@ namespace jadel
         return result;
     }
 
+    static void createMemoryBlockAndAppendFreeList(uint8 *pointer, size_t size)
+    {
+        MemoryBlock block = createMemoryBlock(pointer, size);
+        freeList.append(block);
+    }
+
+    static void createMemoryBlockAndInsertFreeList(uint8 *pointer, size_t size, size_t index)
+    {
+        MemoryBlock block = createMemoryBlock(pointer, size);
+        freeList.insertNext(index, block);
+    }
+
+    static MemoryBlock *findBlockByPointer(void *pointer, size_t *index)
+    {
+        if (!pointer)
+            return false;
+        MemoryBlock *result = freeList.getHead();
+
+        // Look for the correct block in the free list
+        size_t i = 0;
+        while (result->pointer != (uint8 *)pointer)
+        {
+            ++i;
+            result = freeList.get(i);
+            if (!result)
+                return false;
+        }
+        *index = i;
+        return result;
+    }
+
     bool memoryInit(size_t bytes)
     {
-        memoryAllocation = (uint8 *)malloc(bytes);
+        memoryPool = (uint8 *)malloc(bytes);
 
-        if (!memoryAllocation)
+        if (!memoryPool)
             return false;
 
-        numBytesAllocated = bytes;
-        freeList.append(createMemoryBlock(memoryAllocation, numBytesAllocated));
-        totalAllocationSize = bytes;
+        memoryPoolSize = bytes;
+        createMemoryBlockAndAppendFreeList(memoryPool, memoryPoolSize);
         return true;
     }
 
-    void *memoryReserve(size_t bytes)
+    void *memoryReserve(const size_t bytes)
     {
         bool blockFound = false;
         MemoryBlock *block;
-        size_t i = 0;
+        size_t blockIndex = 0;
         while (!blockFound)
         {
-            block = freeList.get(i);
+            block = freeList.get(blockIndex);
             if (!block)
             {
-                printf("[ERROR] Cannot reserve %zd bytes!\n", bytes);
+                jadel::message("[ERROR] Cannot reserve %d bytes!\n", bytes);
                 return NULL;
             }
             if (!block->reserved && bytes <= block->size)
                 blockFound = true;
             else
-                ++i;
+                ++blockIndex;
         }
 
         block->reserved = true;
-        //jadel::message("Reserved %d bytes\n", bytes);
+        // jadel::message("Reserved %d bytes\n", bytes);
         numAllocatedBytes += bytes;
         ++numAllocatedBlocks;
         // No need to do more processing if the block is already precisely the correct size
@@ -92,79 +129,63 @@ namespace jadel
 
         size_t oldBlockSize = block->size;
         block->size = bytes;
-        MemoryBlock *nextBlockInList = freeList.get(i + 1);
-        uint8 *nextBlockStart = (uint8 *)block->pointer + bytes;
+        uint8 *expectedNextBlockStart = getEndOfBlock(block);
+        MemoryBlock *nextBlockInList = freeList.get(blockIndex + 1);
         if (!nextBlockInList)
         {
-            // If current block ends at the edge of the total memory allocation
+            // If current block ends at the edge of the memory pool
             // we do not add another block at the end of the freeList
-            if ((uint8 *)block->pointer + bytes - (uint8 *)memoryAllocation == numBytesAllocated)
-                return block->pointer;
-
-            freeList.append(createMemoryBlock(nextBlockStart, numBytesAllocated - getMemoryOffset(nextBlockStart)));
-            return block->pointer;
-        }
-
-        // Skip if next block pointer is already at current block's edge
-        if (nextBlockInList->pointer != block->pointer + block->size)
-        {
-            // Move the next block's pointer to the edge of current block unless next block is reserved
-            if (!nextBlockInList->reserved)
-            {
-                nextBlockInList->pointer = nextBlockStart;
-                nextBlockInList->size += oldBlockSize - block->size;
-            }
-            else // Otherwise insert a new block between the current and the next one
-            {
-                freeList.insertNext(i, createMemoryBlock(nextBlockStart, nextBlockInList->pointer - nextBlockStart));
-            }
+            createMemoryBlockAndAppendFreeList(expectedNextBlockStart, getMemoryPoolEnd() - expectedNextBlockStart);
         }
         return block->pointer;
     }
 
     bool memoryFree(void *block)
     {
-        if (block == NULL) return false;
-        MemoryBlock *memBlock = freeList.getHead();
-        size_t i = 0;
-        while (memBlock->pointer != (uint8 *)block)
+        size_t index;
+        MemoryBlock *memBlock = findBlockByPointer(block, &index);
+        if (!memBlock)
         {
-            ++i;
-            memBlock = freeList.get(i);
-            if (!memBlock)
-                return false;
+            return false;
         }
-        //jadel::message("Freed %d bytes\n", memBlock->size);
+        // jadel::message("Freed %d bytes\n", memBlock->size);
         numAllocatedBytes -= memBlock->size;
         --numAllocatedBlocks;
         memBlock->reserved = false;
 
-        // Merge the block with the next if it's not reserved
-        MemoryBlock *nextBlock = freeList.get(i + 1);
+        // Merge the block with the surrounding blocks next if they're not reserved
+        MemoryBlock *nextBlock = freeList.get(index + 1);
         if (nextBlock && !nextBlock->reserved)
         {
             memBlock->size += nextBlock->size;
-            freeList.deleteByIndex(i + 1);
+            freeList.deleteByIndex(index + 1);
+        }
+        MemoryBlock *prevBlock = freeList.get(index - 1);
+        if (prevBlock && !prevBlock->reserved)
+        {
+            memBlock->pointer = prevBlock->pointer;
+            memBlock->size += prevBlock->size;
+            freeList.deleteByIndex(index - 1);
         }
         return true;
     }
 
     void memoryPrintDebugData()
     {
-        printf("FreeList contents:\n");
+        jadel::message("FreeList contents:\n");
 
         MemoryBlock *block = freeList.getHead();
         size_t i = 0;
         while (block)
         {
-            printf("Block index: %zd, pointer %p, size: %zd, reserved: %d\n", i, block->pointer, block->size, (int)block->reserved);
+            jadel::message("Block index: %d, pointer offset: %d, size: %d, reserved: %d\n", i, getMemoryOffset(block->pointer), block->size, (int)block->reserved);
             block = freeList.get(++i);
         }
     }
 
     size_t memoryGetTotalAllocationSize()
     {
-        return totalAllocationSize;
+        return memoryPoolSize;
     }
 
     size_t memoryGetNumAllocatedBlocks()
@@ -179,6 +200,6 @@ namespace jadel
 
     size_t memoryGetFreeBytes()
     {
-        return totalAllocationSize - numAllocatedBytes;
+        return memoryPoolSize - numAllocatedBytes;
     }
 }
