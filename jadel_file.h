@@ -13,7 +13,7 @@
 
 namespace jadel
 {
-    enum 
+    enum
     {
         BINARY_FILE_INIT_EMPTY,
         BINARY_FILE_INIT_FILLED
@@ -21,44 +21,49 @@ namespace jadel
 
     struct DECLSPEC BinaryFile
     {
-        void* data;
+        void *data;
         size_t fileBufferSize;
         size_t numBytesWritten;
-        uint8* pointerToLastWrittenByte;
-        uint8* pointerToLastReadByte;
+        uint8 *pointerToLastWrittenByte;
+        uint8 *pointerToLastReadByte;
 
         BinaryFile(size_t size);
-        BinaryFile(const char* filepath);
+        BinaryFile(const char *filepath);
         BinaryFile() = default;
-           
+
         size_t numBytesRead() const;
-        
+
         void close();
-        bool init(void* data, size_t size, uint32 initFlag);
+        bool init(void *data, size_t size, uint32 initFlag);
         bool init(size_t size);
-        bool init(const char* filepath);
+        bool init(const char *filepath);
         bool setWritePointerOffset(size_t offset);
         bool setReadPointerOffset(size_t offset);
 
-        bool writeNBytes(size_t numBytes, void* src);
+        bool writeNBytes(size_t numBytes, void *src);
         bool writeInt(int val);
         bool writeUint32(uint32 val);
         bool writeUint64(uint64 val);
         bool writeBool(bool val);
         bool writeFloat(float val);
         bool writeDouble(double val);
+        bool writeChar(char val);
+        bool writeString(const char* val, size_t stringLength);
+        bool writeString(const char* val);
 
-        bool readNBytes(void* dst, size_t numBytes);
-        bool readInt(int* dst);
-        bool readUint32(uint32* dst);
-        bool readUint64(uint64* dst);
-        bool readBool(bool* dst);
-        bool readFloat(float* dst);
-        bool readDouble(double* dst);
+        bool readNBytes(void *dst, size_t numBytes);
+        bool readInt(int *dst);
+        bool readUint32(uint32 *dst);
+        bool readUint64(uint64 *dst);
+        bool readBool(bool *dst);
+        bool readFloat(float *dst);
+        bool readDouble(double *dst);
+        bool readChar(char* dst);
+        bool readString(char* dst, size_t stringLength);
 
-        bool writeToFile(const char* filepath);
+        bool writeToFile(const char *filepath);
     };
-    
+
     inline size_t getFileSize(FILE *fp)
     {
         fseek(fp, 0, SEEK_END);
@@ -104,13 +109,15 @@ namespace jadel
         return true;
     }
 
-    inline bool readTextFileAndReserveMemory(const char* filepath, char** target, size_t *numCharacters)
+    inline bool readTextFileAndReserveMemory(const char *filepath, char **target, size_t *numCharacters)
     {
         FILE *fp = fopen(filepath, "r");
-        if (!fp) return false;
+        if (!fp)
+            return false;
         size_t fileSize = getFileSize(fp) + 1; // Null terminator
-        char* data = (char*)jadel::memoryReserve(fileSize);
-        if (!data) return false;
+        char *data = (char *)jadel::memoryReserve(fileSize);
+        if (!data)
+            return false;
         bool result = readTextFile(filepath, data, fileSize, numCharacters);
         *target = data;
         return result;
@@ -151,7 +158,7 @@ namespace jadel
         return true;
     }
 
-    inline bool writeBinaryFile(const char* filepath, const void* data, size_t sizeInBytes)
+    inline bool writeBinaryFile(const char *filepath, const void *data, size_t sizeInBytes)
     {
         FILE *fp = fopen(filepath, "wb");
         if (!fp)
@@ -162,7 +169,6 @@ namespace jadel
         fclose(fp);
         return true;
     }
-    
 
     struct BMPHeader
     {

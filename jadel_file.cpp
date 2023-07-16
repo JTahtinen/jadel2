@@ -1,5 +1,6 @@
 #include "jadel_file.h"
 #include <memory.h>
+#include <string.h>
 
 namespace jadel
 {
@@ -45,6 +46,11 @@ namespace jadel
     {
         if (!data)
         {
+            this->data = NULL;
+            this->fileBufferSize = 0;
+            this->numBytesWritten = 0;
+            this->pointerToLastWrittenByte = NULL;
+            this->pointerToLastReadByte = NULL;
             return false;
         }
         this->data = data;
@@ -115,7 +121,7 @@ namespace jadel
         }
         memmove(this->pointerToLastWrittenByte, val, numBytes);
         this->numBytesWritten += numBytes;
-        this->pointerToLastWrittenByte = (uint8*)this->data + numBytesWritten;
+        this->pointerToLastWrittenByte = (uint8 *)this->data + numBytesWritten;
         return true;
     }
 
@@ -147,6 +153,22 @@ namespace jadel
     bool BinaryFile::writeDouble(double val)
     {
         return writeNBytes(sizeof(double), &val);
+    }
+
+    bool BinaryFile::writeChar(char val)
+    {
+        return writeNBytes(sizeof(char), &val);
+    }
+
+    bool BinaryFile::writeString(const char* val, size_t stringLength)
+    {
+        return writeNBytes(stringLength * sizeof(char), (void*)val);
+    }
+
+    bool BinaryFile::writeString(const char *val)
+    {
+        size_t len = strlen(val);
+        return writeString(val, len);
     }
 
     bool BinaryFile::readNBytes(void *dst, size_t numBytes)
@@ -188,6 +210,23 @@ namespace jadel
     bool BinaryFile::readDouble(double *dst)
     {
         return readNBytes(dst, sizeof(double));
+    }
+
+    bool BinaryFile::readChar(char *dst)
+    {
+        return readNBytes(dst, sizeof(char));
+    }
+
+    bool BinaryFile::readString(char *dst, size_t stringLength)
+    {
+        for (int i = 0; i < stringLength; ++i)
+        {
+            if (!readChar(dst + i))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool BinaryFile::writeToFile(const char *filepath)
