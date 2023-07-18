@@ -49,9 +49,9 @@ namespace jadel
         return left;
     }
 
-    inline Vec4 &operator*=(Vec4 &left, float right)
+    inline Vec4 &operator*=(Vec4 &left, float scalar)
     {
-        left = left.mul(right);
+        left = left.mul(scalar);
         return left;
     }
 

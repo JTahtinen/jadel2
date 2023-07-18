@@ -10,7 +10,7 @@ namespace jadel
         Vec2(float x, float y);
         Vec2 add(Vec2 v1) const;
         Vec2 subst(Vec2 v1) const;
-        Vec2 mul(float val) const;
+        Vec2 mul(float scalar) const;
         float length() const;
         float dot(Vec2 b) const;
         Vec2 normalize() const;
@@ -28,9 +28,15 @@ namespace jadel
         return result;
     }
 
-    inline Vec2 operator*(Vec2 left, float right)
+    inline Vec2 operator*(Vec2 left, float scalar)
     {
-        Vec2 result = left.mul(right);
+        Vec2 result = left.mul(scalar);
+        return result;
+    }
+
+    inline float operator*(Vec2 left, Vec2 right)
+    {
+        float result = left.dot(right);
         return result;
     }
 
@@ -46,11 +52,12 @@ namespace jadel
         return left;
     }
 
-    inline Vec2 &operator*=(Vec2 &left, float right)
+    inline Vec2 &operator*=(Vec2 &left, float scalar)
     {
-        left = left.mul(right);
+        left = left.mul(scalar);
         return left;
     }
+
 
     inline bool operator==(Vec2 left, Vec2 right)
     {

@@ -26,9 +26,9 @@ namespace jadel
         return result;
     }
 
-    Vec3 Vec3::mul(float val) const
+    Vec3 Vec3::mul(float scalar) const
     {
-        Vec3 result(x * val, y * val, z * val);
+        Vec3 result(x * scalar, y * scalar, z * scalar);
         return result;
     }
 
@@ -49,8 +49,16 @@ namespace jadel
 
     Vec3 Vec3::normalize() const
     {
+        Vec3 result;
         float len = length();
-        Vec3 result(x / len, y / len, z / len);
-        return result;
+        if (len == 0)
+        {
+            result = Vec3(0, 0 ,0);
+        }
+        else
+        {
+            result = Vec3(x / len, y / len, z / len);
+        }
+        return result;   
     }
 }

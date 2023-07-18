@@ -26,9 +26,9 @@ namespace jadel
         return result;
     }
 
-    Vec2 Vec2::mul(float val) const
+    Vec2 Vec2::mul(float scalar) const
     {
-        Vec2 result(x * val, y * val);
+        Vec2 result(x * scalar, y * scalar);
         return result;
     }
 
@@ -46,8 +46,16 @@ namespace jadel
 
     Vec2 Vec2::normalize() const
     {
+        Vec2 result;
         float len = length();
-        Vec2 result(x / len, y / len);
+        if (len == 0) 
+        {
+            result = Vec2(0, 0);
+        }
+        else
+        {
+            result = Vec2(x / len, y / len);
+        }
         return result;
     }
 }

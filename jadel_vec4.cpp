@@ -38,9 +38,9 @@ namespace jadel
         return result;
     }
 
-    Vec4 Vec4::mul(float val) const
+    Vec4 Vec4::mul(float scalar) const
     {
-        Vec4 result(x * val, y * val, z * val, w * val);
+        Vec4 result(x * scalar, y * scalar, z * scalar, w * scalar);
         return result;
     }
 
@@ -52,8 +52,16 @@ namespace jadel
 
     Vec4 Vec4::normalize() const
     {
+        Vec4 result;
         float len = length();
-        Vec4 result(x / len, y / len, z / len, w / len);
+        if (len == 0)
+        {
+            result = Vec4(0, 0, 0 ,0);
+        }
+        else
+        {
+            result = Vec4(x / len, y / len, z / len, w / len);
+        }
         return result;
     }
 }
