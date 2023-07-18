@@ -29,9 +29,15 @@ namespace jadel
         return result;
     }
 
-    inline Vec3 operator*(Vec3 left, float right)
+    inline Vec3 operator*(Vec3 left, float scalar)
     {
-        Vec3 result = left.mul(right);
+        Vec3 result = left.mul(scalar);
+        return result;
+    }
+
+    inline Vec3 operator*(Vec3 left, Vec3 right)
+    {
+        Vec3 result = left.cross(right);
         return result;
     }
 
@@ -47,9 +53,15 @@ namespace jadel
         return left;
     }
 
-    inline Vec3 &operator*=(Vec3 &left, float right)
+    inline Vec3 &operator*=(Vec3 &left, float scalar)
     {
-        left = left.mul(right);
+        left = left.mul(scalar);
+        return left;
+    }
+
+    inline Vec3 &operator*=(Vec3 &left, Vec3 right)
+    {
+        left = left.cross(right);
         return left;
     }
 
