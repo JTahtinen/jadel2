@@ -59,6 +59,7 @@ namespace jadel
         target->bitmapInfo.bmiHeader.biCompression = BI_RGB;
         jadel::inputSetCurrentWindow(target);
         ShowWindow(windowHandle, SW_SHOW);
+        //ShowWindow(windowHandle, SW_MAXIMIZE);
         return true;
     }
 
