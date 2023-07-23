@@ -1,9 +1,10 @@
 #include "jadel_mat4.h"
 #include <memory.h>
 
-#define GET(col, row) (this->elements[col + row * 4])
-#define OTHER_GET(col, row) (other.elements[col + row * 4])
-#define GET_FROM(mat, col, row) (mat.elements[col + row * 4])
+#define GET_FROM(mat, col, row) ((mat).elements[col + row * 4])
+#define GET(col, row) (GET_FROM(*this, col, row))
+#define OTHER_GET(col, row) (GET_FROM(other, col, row))
+
 namespace jadel
 {
     Mat4::Mat4()
@@ -31,7 +32,7 @@ namespace jadel
         elements[15] = v15;
     }
 
-    Mat4 Mat4::mul(Mat4 other)
+    Mat4 Mat4::mul(Mat4 other) const
     {
 
         Mat4 result;
@@ -49,7 +50,7 @@ namespace jadel
         return result;
     }
 
-    Vec4 Mat4::mul(Vec4 vec)
+    Vec4 Mat4::mul(Vec4 vec) const
     {
         Vec4 result(vec.x * GET(0, 0) + vec.y * GET(0, 1) + vec.z * GET(0, 2) + vec.w * GET(0, 3),
                     vec.x * GET(1, 0) + vec.y * GET(1, 1) + vec.z * GET(1, 2) + vec.w * GET(1, 3),
@@ -58,14 +59,14 @@ namespace jadel
         return result;
     }
 
-    Vec3 Mat4::mul(Vec3 vec)
+    Vec3 Mat4::mul(Vec3 vec) const
     {
         Vec4 intermediate = mul(Vec4(vec.x, vec.y, vec.z, 1));
         Vec3 result(intermediate.x, intermediate.y, intermediate.z);
         return result;
     }
 
-    Vec2 Mat4::mul(Vec2 vec)
+    Vec2 Mat4::mul(Vec2 vec) const
     {
         Vec3 intermediate = mul(Vec3(vec.x, vec.y, 1));
         Vec2 result(intermediate.x, intermediate.y);
