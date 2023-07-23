@@ -14,6 +14,7 @@ namespace jadel
     bool inputKeysTyped[jadel::NUM_KEYS - 1] = {0};
 
     bool inputRelativeMouseMode = false;
+    static Point2i inputRelativeMouseCursorPos;
 
     static int inputMouseXPrevious = 0;
     static int inputMouseYPrevious = 0;
@@ -52,6 +53,21 @@ namespace jadel
         windowHeight = inputCurrentWindow->height;
         windowHalfW = windowWidth / 2;
         windowHalfH = windowHeight / 2;
+        RECT windowRect;
+        if (GetWindowRect(inputCurrentWindow->hWnd, &windowRect))
+        {
+            RECT clientRect;
+            GetClientRect(inputCurrentWindow->hWnd, &clientRect);
+            int titleHeight = windowRect.bottom - windowRect.top - clientRect.bottom;
+            int winHalfWidth = (windowRect.right - windowRect.left) / 2;
+            int winHalfHeight = (windowRect.bottom - windowRect.top - titleHeight) / 2;
+            inputRelativeMouseCursorPos = {windowRect.left + winHalfWidth, windowRect.top + titleHeight + winHalfHeight - 8}; // 8 is an invisible border size that does not appear in window rect for whatever reason
+        }
+
+        inputMouseX = inputRelativeMouseCursorPos.x;
+        inputMouseY = inputRelativeMouseCursorPos.y;
+        inputMouseXPrevious = inputRelativeMouseCursorPos.x;
+        inputMouseYPrevious = inputRelativeMouseCursorPos.y;
     }
 
     bool inputIsKeyPressed(uint32 key)
@@ -141,17 +157,16 @@ namespace jadel
     float inputGetMouseDeltaXRelative()
     {
         int mouseDeltaX = inputGetMouseDeltaX();
-        float result = (float)(mouseDeltaX - windowHalfW) / (float)windowHalfW;
+        float result = (float)mouseDeltaX / (float)windowHalfW;
         return result;
     }
 
     float inputGetMouseDeltaYRelative()
     {
         int mouseDeltaY = inputGetMouseDeltaY();
-        float result = (float)(mouseDeltaY - windowHalfH) / (float)windowHalfH;
+        float result = (float)mouseDeltaY / (float)windowHalfH;
         return result;
     }
-
 
     jadel::Vec2 inputGetMouseDeltaRelative()
     {
@@ -219,26 +234,24 @@ namespace jadel
         return result;
     }
 
+    int inputGetMouseWheelScrolls()
+    {
+        return inputMWheel;
+    }
+
     void inputUpdate()
     {
         inputMouseDeltaX = inputMouseX - inputMouseXPrevious;
         inputMouseDeltaY = inputMouseY - inputMouseYPrevious;
         if (inputRelativeMouseMode && inputCurrentWindow)
         {
-            RECT windowRect;
-            if(GetWindowRect(inputCurrentWindow->hWnd, &windowRect))
+            if (inputRelativeMouseMode)
             {
-                RECT clientRect;
-                GetClientRect(inputCurrentWindow->hWnd, &clientRect);
-                int titleHeight = windowRect.bottom - windowRect.top - clientRect.bottom;
-                int winHalfWidth = (windowRect.right - windowRect.left) / 2;
-                int winHalfHeight = (windowRect.bottom - windowRect.top - titleHeight) / 2;
-                SetCursorPos(windowRect.left + winHalfWidth, windowRect.top + titleHeight + winHalfHeight - 8); // 8 is an invisible border size that does not appear in window rect for whatever reason
+                SetCursorPos(inputRelativeMouseCursorPos.x, inputRelativeMouseCursorPos.y);
             }
             inputMouseX = windowHalfW;
             inputMouseY = windowHalfH;
         }
-        
     }
 
     void inputReset()
@@ -248,6 +261,7 @@ namespace jadel
         inputMouseDeltaX = 0;
         inputMouseDeltaY = 0;
         inputMWheel = 0;
+
         for (int i = 0; i < jadel::NUM_KEYS - 1; ++i)
         {
             inputKeysReleased[i] = false;

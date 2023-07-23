@@ -27,7 +27,7 @@ using namespace jadel;
 HINSTANCE jadel::myHInstance;
 TCHAR jadel::className[] = _T("JADELClass");
 
-Window* jadel::windowList[10];
+Window *jadel::windowList[10];
 int jadel::numWindows = 0;
 
 static bool isInitialized = false;
@@ -40,7 +40,7 @@ namespace jadel
         return result;
     }
 
-    void writeToConsole(const char* text, size_t numChars)
+    void writeToConsole(const char *text, size_t numChars)
     {
         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), text, numChars, NULL, NULL);
     }
@@ -98,6 +98,7 @@ bool JadelInit(size_t bytesOfMemoryToReserve)
         return false;
     }
     isInitialized = true;
+    JadelUpdate();
     return true;
 }
 
@@ -113,7 +114,7 @@ void JadelUpdate()
     inputUpdate();
 }
 
-jadel::Window* findWindow(HWND hWnd)
+jadel::Window *findWindow(HWND hWnd)
 {
     for (int i = 0; i < jadel::numWindows; ++i)
     {
@@ -139,7 +140,9 @@ LRESULT CALLBACK WndProc(
     switch (message)
     {
     case WM_CREATE:
+    {        
         return 0;
+    }
     case WM_CLOSE:
         PostQuitMessage(0);
         return 0;
@@ -149,7 +152,7 @@ LRESULT CALLBACK WndProc(
         return 0;
     case WM_SIZE:
     {
-        jadel::Window* win = findWindow(hWnd);
+        jadel::Window *win = findWindow(hWnd);
         if (win)
         {
             jadel::windowUpdateSize(win);
@@ -159,9 +162,9 @@ LRESULT CALLBACK WndProc(
     }
     case WM_SETFOCUS:
     {
-        jadel::Window* win = findWindow(hWnd);
+        jadel::Window *win = findWindow(hWnd);
         if (win)
-            jadel::inputSetCurrentWindow(win); 
+            jadel::inputSetCurrentWindow(win);
         return 0;
     }
     case WM_KEYDOWN:
