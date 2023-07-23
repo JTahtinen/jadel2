@@ -6,6 +6,9 @@
 #include "jadel_vec3.h"
 #include "jadel_mat3.h"
 
+#define JADEL_CLAMP(val, min, max) \
+(val >= min ? (val <= max ? val : max) : min)
+
 namespace jadel
 {
 
@@ -25,8 +28,8 @@ namespace jadel
             Point2i result = {x - other.x, y - other.y};
             return result;
         }
-        
-        Point2i& operator+=(Point2i other)
+
+        Point2i &operator+=(Point2i other)
         {
             *this = {x + other.x, y + other.y};
             return *this;
@@ -35,7 +38,7 @@ namespace jadel
         Point2i operator-=(Point2i other)
         {
             *this = {x - other.x, y - other.y};
-            return *this;        
+            return *this;
         }
 
         bool operator==(Point2i other) const
@@ -49,7 +52,6 @@ namespace jadel
             bool result = !(*this == other);
             return result;
         }
-
     };
 
     struct Recti
@@ -58,7 +60,32 @@ namespace jadel
         int y0;
         int x1;
         int y1;
+
+        Recti(int x0, int y0, int x1, int y1)
+            : x0(x0), y0(y0), x1(x1), y1(y1)
+        {
+        }
         
+        Recti(Point2i a, Point2i b)
+            : Recti(a.x, a.y, b.x, b.y)
+        {
+        }
+
+        Recti()
+            : Recti(0, 0, 0, 0)
+        {
+        }
+
+        Point2i getPointA() const
+        {
+            return {x0, y0};
+        }
+
+        Point2i getPointB() const
+        {
+            return {x1, y1};
+        }
+
     };
 
     struct Rectf
@@ -69,13 +96,10 @@ namespace jadel
         float y1;
 
         Rectf(float x0, float y0, float x1, float y1)
-            : x0(x0)
-            , y0(y0)
-            , x1(x1)
-            , y1(y1)
+            : x0(x0), y0(y0), x1(x1), y1(y1)
         {
         }
-        
+
         Rectf(Vec2 p0, Vec2 p1)
             : Rectf(p0.x, p0.y, p1.x, p1.y)
         {
