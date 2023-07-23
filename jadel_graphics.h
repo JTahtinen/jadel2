@@ -2,6 +2,7 @@
 
 #include "jadel_defs.h"
 #include "jadel_math.h"
+#include "jadel_color.h"
 
 namespace jadel
 {
@@ -14,23 +15,6 @@ namespace jadel
     {
         uint32 content;
         unsigned char elems[4];
-    };
-
-    struct Color
-    {
-        float a;
-        float r;
-        float g;
-        float b;
-
-        inline Color operator*(float val)
-        {
-            Color result;
-            result.r = clampf(r * val, 0, 1.0f);
-            result.g = clampf(g * val, 0, 1.0f);
-            result.b = clampf(b * val, 0, 1.0f);
-            return result;
-        }
     };
 
     struct Surface
@@ -49,19 +33,19 @@ namespace jadel
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, uint32 color);
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, float a, float r, float g, float b);
     extern DECLSPEC void graphicsDrawPixelFast(int x, int y, Color color);
+    extern DECLSPEC void graphicsDrawPixelRelativeFast(int x, int y, Color color);
+    extern DECLSPEC void graphicsDrawPixelRelativeFast(int x, int y, uint32 color);
+    extern DECLSPEC void graphicsDrawRectFast(int xStart, int xEnd, int yStart, int yEnd, Color color);
     extern DECLSPEC void graphicsDrawRect(int xStart, int xEnd, int yStart, int yEnd, uint32 color);
     extern DECLSPEC void graphicsDrawRect(int xStart, int xEnd, int yStart, int yEnd, Color color);
     extern DECLSPEC void graphicsDrawRect(Recti rect, uint32 color);
     extern DECLSPEC void graphicsDrawRect(Recti rect, Color color);
+    extern DECLSPEC void graphicsDrawRectAdditiveRelative(Rectf rect, Color color);
     extern DECLSPEC void graphicsDrawRectRelative(float xStart, float yStart, float xEnd, float yEnd, Color color);
     extern DECLSPEC void graphicsDrawRectRelative(Rectf rect, Color color);
     extern DECLSPEC void graphicsDrawLineRelative(float xStart, float yStart, float xEnd, float yEnd, Color color);
     extern DECLSPEC void graphicsDrawLineRelative(Vec2 start, Vec2 end, Color color);
     extern DECLSPEC void graphicsDrawTriangleRelative(Vec2 point0, Vec2 point1, Vec2 point2, Color color);
-    extern DECLSPEC uint32 graphicsConvertColorToU32(Color color);
-    extern DECLSPEC Color graphicsConvertU32ToColor(unsigned int color);
-    extern DECLSPEC uint32 graphicsBlendColors(Color foreground, Color background);
-    extern DECLSPEC uint32 graphicsBlendColors(uint32 foreground, uint32 background);
     extern DECLSPEC void graphicsBlitFast(const Surface *source, int targetX0, int targetY0, int targetX1, int targetY1, int sourceX0, int sourceY0, int sourceX1, int sourceY1, float sourceXStep, float sourceYStep);
     extern DECLSPEC void graphicsBlitFast(const Surface *source, int x0, int y0, int x1, int y1);
     extern DECLSPEC void graphicsBlitFast(const Surface *source, Recti rect);
@@ -69,10 +53,15 @@ namespace jadel
     extern DECLSPEC void graphicsBlit(const Surface *source, int x, int y);
     extern DECLSPEC void graphicsBlit(const Surface *source, int x0, int y0, int x1, int y1);
     extern DECLSPEC void graphicsBlit(const Surface *source, Recti targetRect);
+    extern DECLSPEC void graphicsBlit(const Surface *source, Recti targetRect, Recti sourceRect);
+    // Function takes relative coordinates of the target surface, and absolute pixel dimensions of the source surface
+    extern DECLSPEC void graphicsBlitRelative(const Surface* source, Rectf targetRect, Recti sourceRect);
     extern DECLSPEC void graphicsBlitRelative(const Surface *source, Rectf targetRect, Rectf sourceRect);
     extern DECLSPEC void graphicsBlitRelative(const Surface *source, Rectf targetRect);
-    extern DECLSPEC bool graphicsCopyEqualSizeSurface(const Surface* source);
+    extern DECLSPEC bool graphicsCopyEqualSizeSurface(const Surface *source);
     extern DECLSPEC void graphicsFill(unsigned int color);
+    extern DECLSPEC void graphicsMultiplyPixelValues(float r, float g, float b, Recti targetRect);
+    extern DECLSPEC void graphicsMultiplyPixelValues(float r, float g, float b, Rectf targetRect);
     extern DECLSPEC void graphicsMultiplyPixelValues(float r, float g, float b);
     extern DECLSPEC void graphicsMultiplyPixelValues(float val);
     extern DECLSPEC bool graphicsCreateSurface(int width, int height, Surface *target);
