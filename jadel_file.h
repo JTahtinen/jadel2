@@ -24,8 +24,8 @@ namespace jadel
         void *data;
         size_t fileBufferSize;
         size_t numBytesWritten;
-        uint8 *pointerToLastWrittenByte;
-        uint8 *pointerToLastReadByte;
+        uint8 *writePointer;
+        uint8 *readPointer;
 
         BinaryFile(size_t size);
         BinaryFile(const char *filepath);
@@ -39,6 +39,8 @@ namespace jadel
         bool init(const char *filepath);
         bool setWritePointerOffset(size_t offset);
         bool setReadPointerOffset(size_t offset);
+        bool advanceWritePointer(size_t numBytes);
+        bool advenceReadPointer(size_t numBytes);
 
         bool writeNBytes(size_t numBytes, void *src);
         bool writeInt(int val);
@@ -48,9 +50,10 @@ namespace jadel
         bool writeFloat(float val);
         bool writeDouble(double val);
         bool writeChar(char val);
-        bool writeString(const char* val, size_t stringLength);
-        bool writeString(const char* val);
-
+        
+        // Pads the end of the buffer with zeros 
+        bool writeString(const char* val, size_t maxStringLength, size_t bufferSize);
+        bool writeString(const char* val, size_t bufferSize);
         bool readNBytes(void *dst, size_t numBytes);
         bool readInt(int *dst);
         bool readUint32(uint32 *dst);
@@ -59,7 +62,8 @@ namespace jadel
         bool readFloat(float *dst);
         bool readDouble(double *dst);
         bool readChar(char* dst);
-        bool readString(char* dst, size_t stringLength);
+        bool readString(char* dst, size_t expectedStringLengthIncTerminator, size_t bufferSize);
+
 
         bool writeToFile(const char *filepath);
     };

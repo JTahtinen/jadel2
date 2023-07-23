@@ -30,7 +30,7 @@ namespace jadel
 
     size_t BinaryFile::numBytesRead() const
     {
-        size_t result = pointerToLastReadByte - this->data;
+        size_t result = readPointer - this->data;
         return result;
     }
 
@@ -38,8 +38,8 @@ namespace jadel
     {
         jadel::memoryFree(this->data);
         this->data = NULL;
-        this->pointerToLastReadByte = NULL;
-        this->pointerToLastWrittenByte = NULL;
+        this->readPointer = NULL;
+        this->writePointer = NULL;
     }
 
     bool BinaryFile::init(void *data, size_t size, uint32 initFlag)
@@ -49,8 +49,8 @@ namespace jadel
             this->data = NULL;
             this->fileBufferSize = 0;
             this->numBytesWritten = 0;
-            this->pointerToLastWrittenByte = NULL;
-            this->pointerToLastReadByte = NULL;
+            this->writePointer = NULL;
+            this->readPointer = NULL;
             return false;
         }
         this->data = data;
@@ -99,7 +99,7 @@ namespace jadel
         {
             return false;
         }
-        this->pointerToLastWrittenByte = (uint8 *)this->data + offset;
+        this->writePointer = (uint8 *)this->data + offset;
         return true;
     }
 
@@ -109,7 +109,29 @@ namespace jadel
         {
             return false;
         }
-        this->pointerToLastReadByte = (uint8 *)this->data + offset;
+        this->readPointer = (uint8 *)this->data + offset;
+        return true;
+    }
+
+    bool BinaryFile::advanceWritePointer(size_t numBytes)
+    {
+        size_t dataOffset = (this->writePointer + numBytes) - this->data;
+        if (dataOffset > this->fileBufferSize)
+        {
+            return false;
+        }
+        this->writePointer += numBytes;
+        return true;
+    }
+
+    bool BinaryFile::advenceReadPointer(size_t numBytes)
+    {
+        size_t dataOffset = (this->readPointer + numBytes) - this->data;
+        if (dataOffset > this->fileBufferSize)
+        {
+            return false;
+        }
+        this->readPointer += numBytes;
         return true;
     }
 
@@ -117,11 +139,12 @@ namespace jadel
     {
         if (!val || !isWritePossible(this, numBytes))
         {
+            jadel::message("Binary File: Write failed!\n");
             return false;
         }
-        memmove(this->pointerToLastWrittenByte, val, numBytes);
+        memmove(this->writePointer, val, numBytes);
         this->numBytesWritten += numBytes;
-        this->pointerToLastWrittenByte = (uint8 *)this->data + numBytesWritten;
+        this->writePointer = (uint8 *)this->data + numBytesWritten;
         return true;
     }
 
@@ -160,25 +183,40 @@ namespace jadel
         return writeNBytes(sizeof(char), &val);
     }
 
-    bool BinaryFile::writeString(const char* val, size_t stringLength)
+    bool BinaryFile::writeString(const char *val, size_t maxStringLength, size_t bufferSize)
     {
-        return writeNBytes(stringLength * sizeof(char), (void*)val);
+        size_t stringLength = JADEL_CLAMP(maxStringLength, 0, bufferSize);      
+        bool result = writeNBytes(stringLength * sizeof(char), (void *)val);
+        if (!result) 
+        {
+            return false;
+        }
+        for (size_t i = 0; i < bufferSize - stringLength; ++i)
+        {
+            result = writeChar((char)0);
+            if (!result)
+            {
+                return false;
+            }
+        }
+        return result;
     }
 
-    bool BinaryFile::writeString(const char *val)
+    bool BinaryFile::writeString(const char *val, size_t bufferSize)
     {
-        size_t len = strlen(val);
-        return writeString(val, len);
+        size_t len = strnlen(val, bufferSize - 1);
+        return writeString(val, len, bufferSize);
     }
 
     bool BinaryFile::readNBytes(void *dst, size_t numBytes)
     {
         if (!dst || !isReadPossible(this, numBytes))
         {
+            jadel::message("Binary File: read failed!\n");
             return false;
         }
-        memmove(dst, this->pointerToLastReadByte, numBytes);
-        this->pointerToLastReadByte += numBytes;
+        memmove(dst, this->readPointer, numBytes);
+        this->readPointer += numBytes;
         return true;
     }
 
@@ -217,14 +255,20 @@ namespace jadel
         return readNBytes(dst, sizeof(char));
     }
 
-    bool BinaryFile::readString(char *dst, size_t stringLength)
+    bool BinaryFile::readString(char *dst, size_t expectedStringLengthIncTerminator, size_t bufferSize)
     {
-        for (int i = 0; i < stringLength; ++i)
+        size_t stringLength = JADEL_CLAMP(expectedStringLengthIncTerminator, 0, bufferSize);
+        size_t i = 0;
+        for (; i < stringLength; ++i)
         {
             if (!readChar(dst + i))
             {
                 return false;
             }
+        }
+        for (; i < bufferSize; ++i)
+        {
+            dst[i] = 0;
         }
         return true;
     }
