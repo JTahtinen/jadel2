@@ -61,7 +61,10 @@ namespace jadel
 
     DECLSPEC bool inputIsMouseMiddleReleased();
 
+    DECLSPEC int inputGetMouseWheelScrolls();
+
     DECLSPEC void inputUpdate();
+
 
     void inputReset();
 

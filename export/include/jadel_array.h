@@ -1,6 +1,9 @@
 #pragma once
 
 #include "jadel_defs.h"
+#include "jadel_memory.h"
+#include "jadel_iterator.h"
+
 namespace jadel
 {
     template <typename T>
@@ -13,7 +16,7 @@ namespace jadel
         Array(size_t capacity)
             : capacity(capacity), size(0)
         {
-            data = (T *)malloc(sizeof(T) * capacity);
+            data = (T *)jadel::memoryReserve(sizeof(T) * capacity);
         }
 
         Array()
@@ -28,7 +31,7 @@ namespace jadel
             free(data);
         }
 
-        inline void push(T elem)
+        inline void push(const T& elem)
         {
             if (size < capacity)
             {
@@ -46,7 +49,7 @@ namespace jadel
             return false;
         }
 
-        inline T &ArraygetElement(size_t index)
+        inline T &get(size_t index)
         {
             if (index < size)
             {
@@ -64,6 +67,16 @@ namespace jadel
             return data[size - 1];
         }
 
+        Iterator<T> begin()
+        {
+            return Iterator<T>(&data[0]);
+        }
+
+        Iterator<T> end()
+        {
+            return Iterator<T>(&data[size]);
+        }
+
         inline const T &operator[](size_t index) const
         {
             return data[index];
@@ -73,5 +86,6 @@ namespace jadel
         {
             return data[index];
         }
+
     };
 }

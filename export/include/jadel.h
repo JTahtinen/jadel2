@@ -3,13 +3,15 @@
 
 extern "C" int JadelMain(int argc, char** argv);
 
-#include "jadel_defs.h"
 #include "jadel_array.h"
 #include "jadel_binaryparser.h"
 #include "jadel_carray.h"
+#include "jadel_color.h"
+#include "jadel_defs.h"
 #include "jadel_file.h"
 #include "jadel_graphics.h"
 #include "jadel_input.h"
+#include "jadel_iterator.h"
 #include "jadel_keys.h"
 #include "jadel_linkedlist.h"
 #include "jadel_math.h"
@@ -22,6 +24,7 @@ extern "C" int JadelMain(int argc, char** argv);
 #include "jadel_window.h"
 #include "jadel_string.h"
 #include "jadel_stack.h"
+#include "jadel_stackarray.h"
 #include "jadel_endian.h"
 #include "jadel_vec2.h"
 #include "jadel_vec3.h"
