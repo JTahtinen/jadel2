@@ -3,6 +3,19 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SWAP(val0, val1)  \
+    {                     \
+        auto temp = val0; \
+        val0 = val1;      \
+        val1 = temp;      \
+    }
+#define SWAP_IF_COMPARISON_TRUE(val0, val1, comparison) \
+    {                                                   \
+        if ((val0)comparison(val1))                     \
+            SWAP(val0, val1);                           \
+    }
+
+
 namespace jadel
 {
     inline void swapInt(int* val0, int* val1)
