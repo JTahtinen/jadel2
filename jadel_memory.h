@@ -1,5 +1,8 @@
 #pragma once
 
+#define JADEL_MALLOC( T ) \
+((T*)jadel::memoryReserve(sizeof(T)))
+
 #include "jadel_defs.h"
 namespace jadel
 {
@@ -13,8 +16,26 @@ namespace jadel
     extern DECLSPEC bool memoryFree(void *block);
     extern DECLSPEC void memoryPrintDebugData();
 
+
     extern DECLSPEC size_t memoryGetTotalAllocationSize();
     extern DECLSPEC size_t memoryGetNumAllocatedBlocks();
     extern DECLSPEC size_t memoryGetNumAllocatedBytes();
     extern DECLSPEC size_t memoryGetFreeBytes();
+    
+    template<typename T, typename... Args>
+    T* memoryNew(Args... args)
+    {
+        T* result = JADEL_MALLOC(T);
+        if (!result) return NULL;
+        *result = T(args...);
+        return result;
+    }
+
+    template<typename T>
+    void memoryDelete(T *t)
+    {
+        if (!t) return;
+        t->~T();
+        jadel::memoryFree(t);
+    }
 }
