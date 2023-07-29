@@ -179,6 +179,8 @@ namespace jadel
 
     static bool graphicsValidateAndModifyRectDimensions(int *xStart, int *yStart, int *xEnd, int *yEnd)
     {
+        SWAP_IF_COMPARISON_TRUE(*xStart, *xEnd, >);
+        SWAP_IF_COMPARISON_TRUE(*yStart, *yEnd, >);
         if (*xStart >= targetSurface->width ||
             *yStart >= targetSurface->height ||
             *xEnd <= 0 ||
@@ -536,9 +538,7 @@ namespace jadel
 
     void graphicsBlitRelative(const Surface *source, Rectf targetRect, Recti sourceRect)
     {
-        Recti targetRectI(
-            getRelativePoint(targetRect.x0, targetRect.y0, targetSurface->rect),
-            getRelativePoint(targetRect.x1, targetRect.y1, targetSurface->rect));
+        Recti targetRectI = graphicsGetPixelRect(targetRect);
         graphicsBlit(source, targetRectI, sourceRect);
     }
 
@@ -575,20 +575,23 @@ namespace jadel
 
     void graphicsMultiplyPixelValues(float r, float g, float b, Recti targetRect)
     {
-        graphicsValidateAndModifyRectDimensions(&targetRect);
-        uint8 *pixelElements = (uint8 *)targetSurfaceData->pixels;
-        for (int y = 0; y < targetSurface->height; ++y)
+        if (!graphicsValidateAndModifyRectDimensions(&targetRect))
         {
-            for (int x = 0; x < targetSurface->width; ++x)
+            return;
+        }
+        uint8 *pixelElements = (uint8 *)targetSurfaceData->pixels;
+        for (int y = targetRect.y0; y < targetRect.y1; ++y)
+        {
+            for (int x = targetRect.x0; x < targetRect.x1; ++x)
             {
-                int pixelIndex = x + y * 4;
-                uint32 temp = pixelElements[pixelIndex + rIndex] * r; 
+                int pixelIndex = (x + y * targetSurface->width) * 4;
+                uint32 temp = pixelElements[pixelIndex + rIndex] * r;
                 temp = temp > 255 ? 255 : temp;
                 pixelElements[pixelIndex + rIndex] = temp;
-                temp = pixelElements[pixelIndex + gIndex] * g; 
+                temp = pixelElements[pixelIndex + gIndex] * g;
                 temp = temp > 255 ? 255 : temp;
                 pixelElements[pixelIndex + gIndex] = temp;
-                temp = pixelElements[pixelIndex + bIndex] * b; 
+                temp = pixelElements[pixelIndex + bIndex] * b;
                 temp = temp > 255 ? 255 : temp;
                 pixelElements[pixelIndex + bIndex] = temp;
             }
