@@ -8,180 +8,207 @@ namespace jadel
 {
     struct MemoryBlock
     {
-        uint8 *pointer;
+        void *pointer;
         size_t size;
-        bool reserved;
+    };
 
-        inline bool operator==(const MemoryBlock &other)
+    static void *memoryPool = NULL;
+    static size_t memoryPoolSize = 0;
+    static jadel::LinkedList<MemoryBlock> freeList;
+    static jadel::LinkedList<MemoryBlock> allocationList;
+
+    static void mergeBlockIfNecessary(jadel::Node<MemoryBlock> *block)
+    {
+        if (!block)
         {
-            bool result = this->pointer == other.pointer;
-            return result;
+            printf("[ERROR] Tried to block nonexistent block");
+            return;
         }
-
-        inline bool operator!=(const MemoryBlock &other)
+        jadel::Node<MemoryBlock> *prevBlock = block->prev;
+        jadel::Node<MemoryBlock> *nextBlock = block->next;
+        if (prevBlock)
         {
-            bool result = !(*this == other);
-            return result;
+            if ((uint8 *)prevBlock->data.pointer + prevBlock->data.size == (uint8 *)block->data.pointer)
+            {
+                prevBlock->data.size += block->data.size;
+                block->remove();
+                block = prevBlock;
+            }
+        }
+        if (nextBlock)
+        {
+            if ((uint8 *)block->data.pointer + block->data.size == (uint8 *)nextBlock->data.pointer)
+            {
+                block->data.size += nextBlock->data.size;
+                nextBlock->remove();
+            }
+        }
+    }
+
+    static void insertToFreeList(void *pointer, size_t size)
+    {
+        MemoryBlock block;
+        block.pointer = pointer;
+        block.size = size;
+        jadel::Node<MemoryBlock> *blockNode = freeList.getHead();
+        if (!blockNode)
+        {
+            freeList.append(block);
+            return;
+        }
+        while (blockNode)
+        {
+            if (blockNode->data.pointer > pointer)
+            {
+                blockNode->insertPrev(block);
+                if (blockNode == freeList.getHead())
+                {
+                    freeList.head = blockNode->prev;
+                }
+                mergeBlockIfNecessary(blockNode->prev);
+                return;
+            }
+            if (blockNode->next)
+            {
+                blockNode = blockNode->next;
+            }
+            else
+            {
+                blockNode->insertNext(block);
+                mergeBlockIfNecessary(blockNode->next);
+                break;
+            }
         }
     };
 
-    static uint8 *memoryPool;
-    static size_t memoryPoolSize;
-    static size_t numAllocatedBlocks = 0;
-    static size_t numAllocatedBytes = 0;
-    static LinkedList<MemoryBlock> freeList;
-
-    static uint8 *getEndOfBlock(const MemoryBlock *block)
+    static void removeFromFreeList(void *pointer)
     {
-        uint8 *result = block->pointer + block->size;
-        return result;
-    }
-
-    static uint8 *getMemoryPoolEnd()
-    {
-        return memoryPool + memoryPoolSize;
-    }
-
-    static size_t getMemoryOffset(uint8 *pointer)
-    {
-        size_t result = pointer - memoryPool;
-        return result;
-    }
-
-    static MemoryBlock createMemoryBlock(uint8 *pointer, size_t size)
-    {
-        MemoryBlock result;
-        result.pointer = pointer;
-        result.size = size;
-        result.reserved = false;
-        return result;
-    }
-
-    static void createMemoryBlockAndAppendFreeList(uint8 *pointer, size_t size)
-    {
-        MemoryBlock block = createMemoryBlock(pointer, size);
-        freeList.append(block);
-    }
-
-    static void createMemoryBlockAndInsertFreeList(uint8 *pointer, size_t size, size_t index)
-    {
-        MemoryBlock block = createMemoryBlock(pointer, size);
-        freeList.insertNext(index, block);
-    }
-
-    static MemoryBlock *findBlockByPointer(void *pointer, size_t *index)
-    {
-        if (!pointer)
-            return false;
-        MemoryBlock *result = freeList.getHead();
-
-        // Look for the correct block in the free list
-        size_t i = 0;
-        while (result->pointer != (uint8 *)pointer)
+        jadel::Node<MemoryBlock> *blockNode = freeList.getHead();
+        while (blockNode)
         {
-            ++i;
-            result = freeList.get(i);
-            if (!result)
-                return false;
+            if (blockNode->data.pointer == pointer)
+            {
+                if (blockNode == freeList.getHead())
+                {
+                    freeList.head = blockNode->next;
+                }
+                blockNode->remove();
+                break;
+            }
+            blockNode = blockNode->next;
         }
-        *index = i;
-        return result;
+    }
+
+    static void insertToAllocationList(void *pointer, size_t size)
+    {
+        MemoryBlock block;
+        block.pointer = pointer;
+        block.size = size;
+        allocationList.append(block);
+    }
+
+    static bool removeFromAllocationList(void *pointer, MemoryBlock *blockInfo)
+    {
+        printf("DELETING BLOCK %p ... ", pointer);
+        jadel::Node<MemoryBlock> *blockNode = allocationList.getHead();
+        while (blockNode)
+        {
+            if (blockNode->data.pointer == pointer)
+            {
+                if (blockNode == allocationList.getHead())
+                {
+                    allocationList.head = blockNode->next;
+                }
+                if (blockInfo)
+                {
+                    *blockInfo = blockNode->data;
+                }
+                printf("done! Block size: %zd\n\n", blockNode->data.size);
+                blockNode->remove();
+                return true;
+            }
+            blockNode = blockNode->next;
+        }
+        printf("failed!\n\n");
+        return false;
     }
 
     bool memoryInit(size_t bytes)
     {
-        memoryPool = (uint8 *)malloc(bytes);
-
+        memoryPool = malloc(bytes);
         if (!memoryPool)
+        {
+            printf("[ERROR] Could not init memory pool!\n");
+            // jadel::message("[ERROR] Could not init memory pool!\n");
             return false;
-
+        }
         memoryPoolSize = bytes;
-        createMemoryBlockAndAppendFreeList(memoryPool, memoryPoolSize);
+        insertToFreeList(memoryPool, memoryPoolSize);
         return true;
     }
 
-    void *memoryReserve(const size_t bytes)
+    void *memoryReserve(size_t bytes)
     {
-        bool blockFound = false;
-        MemoryBlock *block;
-        size_t blockIndex = 0;
-        while (!blockFound)
+        int offsetFromAlignment = bytes % 4;
+        int requiredAlignment = offsetFromAlignment > 0 ? 4 - offsetFromAlignment : 0;
+        int finalBytes = bytes + requiredAlignment;
+        printf("Aligned allocation by %d bytes - Requested: %zd, Allocated: %d\n", requiredAlignment, bytes, finalBytes);
+        jadel::Node<MemoryBlock> *blockNode = freeList.getHead();
+        while (blockNode)
         {
-            block = freeList.get(blockIndex);
-            if (!block)
+            if (finalBytes <= blockNode->data.size)
             {
-                jadel::message("[ERROR] Cannot reserve %d bytes!\n", bytes);
-                return NULL;
+                void *allocationPointer = blockNode->data.pointer;
+                insertToAllocationList(allocationPointer, finalBytes);
+                int remainingBytes = blockNode->data.size - finalBytes;
+                if (remainingBytes == 0)
+                {
+                    blockNode->remove();
+                }
+                else
+                {
+                    blockNode->data.pointer = (uint8 *)blockNode->data.pointer + finalBytes;
+                    blockNode->data.size -= finalBytes;
+                }
+                return allocationPointer;
             }
-            if (!block->reserved && bytes <= block->size)
-                blockFound = true;
-            else
-                ++blockIndex;
         }
-
-        block->reserved = true;
-        // jadel::message("Reserved %d bytes\n", bytes);
-        numAllocatedBytes += bytes;
-        ++numAllocatedBlocks;
-        // No need to do more processing if the block is already precisely the correct size
-        if (bytes == block->size)
-            return block->pointer;
-
-        size_t oldBlockSize = block->size;
-        block->size = bytes;
-        uint8 *expectedNextBlockStart = getEndOfBlock(block);
-        MemoryBlock *nextBlockInList = freeList.get(blockIndex + 1);
-        if (!nextBlockInList)
-        {
-            // If current block ends at the edge of the memory pool
-            // we do not add another block at the end of the freeList
-            createMemoryBlockAndAppendFreeList(expectedNextBlockStart, getMemoryPoolEnd() - expectedNextBlockStart);
-        }
-        return block->pointer;
+        return NULL;
     }
 
     bool memoryFree(void *block)
     {
-        size_t index;
-        MemoryBlock *memBlock = findBlockByPointer(block, &index);
-        if (!memBlock)
+        MemoryBlock blockInfo;
+        bool blockDeleted = removeFromAllocationList(block, &blockInfo);
+        if (!blockDeleted)
         {
+            printf("[WARNING] Tried to delete nonexistent block: %p\n", block);
             return false;
         }
-        // jadel::message("Freed %d bytes\n", memBlock->size);
-        numAllocatedBytes -= memBlock->size;
-        --numAllocatedBlocks;
-        memBlock->reserved = false;
-
-        // Merge the block with the surrounding blocks next if they're not reserved
-        MemoryBlock *nextBlock = freeList.get(index + 1);
-        if (nextBlock && !nextBlock->reserved)
-        {
-            memBlock->size += nextBlock->size;
-            freeList.deleteByIndex(index + 1);
-        }
-        MemoryBlock *prevBlock = freeList.get(index - 1);
-        if (prevBlock && !prevBlock->reserved)
-        {
-            memBlock->pointer = prevBlock->pointer;
-            memBlock->size += prevBlock->size;
-            freeList.deleteByIndex(index - 1);
-        }
+        insertToFreeList(blockInfo.pointer, blockInfo.size);
         return true;
     }
-
     void memoryPrintDebugData()
     {
-        jadel::message("FreeList contents:\n");
-
-        MemoryBlock *block = freeList.getHead();
-        size_t i = 0;
-        while (block)
+        int numBlocks = 0;
+        printf("***MEMORY DEBUG DATA***\nFree list contents:\n--------------------\n");
+        jadel::Node<MemoryBlock> *currentBlock = freeList.getHead();
+        while (currentBlock)
         {
-            jadel::message("Block index: %d, pointer offset: %d, size: %d, reserved: %d\n", i, getMemoryOffset(block->pointer), block->size, (int)block->reserved);
-            block = freeList.get(++i);
+            printf("Block %d: Pointer: %p - size: %zd\n", numBlocks++, currentBlock->data.pointer, currentBlock->data.size);
+            currentBlock = currentBlock->next;
         }
-    }
+
+        printf("Allocation list contents:\n--------------------\n");
+        numBlocks = 0;
+        currentBlock = allocationList.getHead();
+        while (currentBlock)
+        {
+            printf("Block %d: Pointer: %p - size: %zd\n", numBlocks++, currentBlock->data.pointer, currentBlock->data.size);
+            currentBlock = currentBlock->next;
+        }
+        printf("\n");
+    };
 
     size_t memoryGetTotalAllocationSize()
     {
@@ -190,16 +217,31 @@ namespace jadel
 
     size_t memoryGetNumAllocatedBlocks()
     {
-        return numAllocatedBlocks;
+        int numAllocs = 0;
+        jadel::Node<MemoryBlock> *currentBlock = allocationList.getHead();
+        while (currentBlock)
+        {
+            ++numAllocs;
+            currentBlock = currentBlock->next;
+        }
+        return numAllocs;
     }
 
     size_t memoryGetNumAllocatedBytes()
     {
+        size_t numAllocatedBytes = 0;
+        jadel::Node<MemoryBlock> *currentBlock = allocationList.getHead();
+        while (currentBlock)
+        {
+            numAllocatedBytes += currentBlock->data.size;
+            currentBlock = currentBlock->next;
+        }
         return numAllocatedBytes;
     }
 
     size_t memoryGetFreeBytes()
     {
-        return memoryPoolSize - numAllocatedBytes;
+        size_t result = memoryPoolSize - memoryGetNumAllocatedBytes();
+        return result;
     }
 }

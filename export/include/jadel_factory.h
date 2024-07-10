@@ -1,6 +1,8 @@
 #pragma once
+#include "jadel_message.h"
 #include "jadel_memory.h"
 #include "jadel_linkedlist.h"
+
 namespace jadel
 {
     template <typename T>

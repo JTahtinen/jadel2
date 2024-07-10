@@ -5,8 +5,9 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <string.h>
+#include "jadel_math_geometry.h"
 #include "jadel_keys.h"
-#include "jadel_graphics.h"
+#include "jadel_graphics_internal.h"
 #include "jadel_defs.h"
 #include "jadel_file.h"
 #include "jadel_math.h"
@@ -19,7 +20,6 @@
 #include "jadel_window.h"
 #include "jadel_endian.h"
 #include "jadel_message.h"
-#include "jadel_window.h"
 
 using namespace jadel;
 // extern "C" int JadelMain();
@@ -78,6 +78,7 @@ bool JadelInit(size_t bytesOfMemoryToReserve)
     }
     determineEndianness();
     graphicsInit();
+    imageLoadInit();
     WNDCLASSEX wc;
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -140,22 +141,38 @@ LRESULT CALLBACK WndProc(
     switch (message)
     {
     case WM_CREATE:
-    {        
+    {
         return 0;
     }
     case WM_CLOSE:
+    {
         PostQuitMessage(0);
         return 0;
+    }
     case WM_PAINT:
+    {
         hdc = BeginPaint(hWnd, &ps);
         EndPaint(hWnd, &ps);
         return 0;
+    }
+    
     case WM_SIZE:
     {
         jadel::Window *win = findWindow(hWnd);
         if (win)
         {
-            jadel::windowUpdateSize(win);
+            windowMaintainAspect(win);
+            //jadel::windowUpdateSize(win);
+            jadel::inputUpdateCurrentWindow();
+        }
+        return 0;
+       
+    }
+    case WM_WINDOWPOSCHANGING:
+    {
+        jadel::Window *win = findWindow(hWnd);
+        if (win)
+        {
             jadel::inputUpdateCurrentWindow();
         }
         return 0;
@@ -180,6 +197,7 @@ LRESULT CALLBACK WndProc(
         }
         return 0;
     case WM_KEYUP:
+    {
         key = convertVKKey(wParam);
         if (key > 0 && key < jadel::NUM_KEYS)
         {
@@ -187,37 +205,54 @@ LRESULT CALLBACK WndProc(
             inputKeysPressed[key - 1] = false;
         }
         return 0;
+    }
     case WM_MOUSEMOVE:
+    {
         inputMouseX = GET_X_LPARAM(lParam);
         inputMouseY = GET_Y_LPARAM(lParam);
         return 0;
+    }
     case WM_LBUTTONDOWN:
+    {
         inputLButtonClicked = true;
         inputLButtonHeld = true;
         return 0;
+    }
     case WM_LBUTTONUP:
+    {
         inputLButtonReleased = true;
         inputLButtonHeld = false;
         return 0;
+    }
     case WM_RBUTTONDOWN:
+    {
         inputRButtonClicked = true;
         inputRButtonHeld = true;
         return 0;
+    }
     case WM_RBUTTONUP:
+    {
         inputRButtonReleased = true;
         inputRButtonHeld = false;
         return 0;
+    }
     case WM_MBUTTONDOWN:
+    {
         inputMButtonClicked = true;
         inputMButtonHeld = true;
         return 0;
+    }
     case WM_MBUTTONUP:
+    {
         inputMButtonReleased = true;
         inputMButtonHeld = false;
         return 0;
+    }
     case WM_MOUSEWHEEL:
+    {
         inputMWheel = GET_WHEEL_DELTA_WPARAM(wParam) / 120;
         return 0;
+    }
     }
     return (DefWindowProc(hWnd, message, wParam, lParam));
 }

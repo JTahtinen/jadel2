@@ -6,56 +6,67 @@ namespace jadel
     template <typename T>
     class Stack
     {
-        T *_data;
-        size_t _size;
-        size_t _capacity;
+        T *m_data;
+        size_t m_size;
+        size_t m_capacity;
 
     public:
 
+        Stack()
+            : m_data(NULL), m_size(0), m_capacity(0)
+        {
+        }
+
         bool init(size_t cap)
         {
-            _data = (T*)memoryReserve(cap * sizeof(T));
-            if (!_data)
+            m_data = (T*)memoryReserve(cap * sizeof(T));
+            if (!m_data)
             {
                 return false;
             }
-            _size = 0;
-            _capacity = cap;
+            m_size = 0;
+            m_capacity = cap;
             return true;
+        }
+
+        void destroy()
+        {
+            memoryFree(m_data);
+            m_data = NULL;
         }
 
         size_t size()
         {
-            return _size;
+            return m_size;
         }
 
         T& top()
         {
-            return _data[_size - 1];
+            return m_data[m_size - 1];
         }
 
         const T &top() const
         {
-            return _data[_size - 1];
+            return m_data[m_size - 1];
         }
 
         void push(const T &element)
         {
-            if (_size == _capacity)
+            if (m_size == m_capacity)
             {
-                if (!resize(_capacity * 2))
+                if (!resize(m_capacity * 2))
                 {
                     return;
                 }
             }
-            _data[_size++] = element;
+            m_data[m_size++] = element;
         }
 
         void pop()
         {
-            if (_size > 0)
+            if (m_size > 0)
             {
-                --_size;
+                --m_size;
             }
         }
 
@@ -66,12 +77,12 @@ namespace jadel
             {
                 return false;
             }
-            if (_data)
+            if (m_data)
             {
-                memoryFree(_data);
+                memoryFree(m_data);
             } 
-            _data = newData;
-            _capacity = cap;
+            m_data = newData;
+            m_capacity = cap;
             return true;
         }
     };

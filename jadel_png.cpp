@@ -1,4 +1,34 @@
-#include <stdlib.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include "jadel_png.h"
+#include "jadel_util.h"
+
+namespace jadel
+{
+    void imageLoadInit()
+    {
+        stbi_set_flip_vertically_on_load(true);
+    }
+
+    bool loadPNG(const char *filename, jadel::Surface *target)
+    {
+        int width;
+        int height;
+        int channels;
+        target->pixels = stbi_load(filename, &width, &height, &channels, 0);
+        if (!target->pixels)
+            return false;
+        for (int i = 0; i < width * height; ++i)
+        {
+            uint8 *pixel = (uint8 *)target->pixels + (channels * i);
+            jadel::flipBytes(pixel, 3);
+        }
+        target->width = width;
+        target->height = height;
+        return true;
+    }
+}
+/*#include <stdlib.h>
 #include "jadel_png.h"
 #include "jadel_util.h"
 #include "jadel_file.h"
@@ -305,4 +335,4 @@ namespace jadel
         processChunks(chunks, target);
         return true;
     }
-}
+}*/

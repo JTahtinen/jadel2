@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+
+#define JADEL_EXPAND_MACRO( x ) x
+
 #ifdef JADEL_EXPORT
     #define DECLSPEC __declspec(dllexport)
 #else

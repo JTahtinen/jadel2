@@ -1,11 +1,21 @@
 #pragma once
 #include "jadel_defs.h"
+#include "jadel_point2i.h"
+#include "jadel_math.h"
 
 namespace jadel
 {
     struct DECLSPEC Vec2
     {
-        float x, y;
+        union
+        {
+            struct
+            {
+                float x, y;
+            };
+            float elements[2];
+        };
+
         Vec2();
         Vec2(float x, float y);
         Vec2 add(Vec2 v1) const;
@@ -14,6 +24,12 @@ namespace jadel
         float length() const;
         float dot(Vec2 b) const;
         Vec2 normalize() const;
+
+        inline operator Point2i() const
+        {
+            Point2i result((int)this->x, (int)this->y);
+            return result;
+        }
     };
 
     inline Vec2 operator+(Vec2 left, Vec2 right)
@@ -58,10 +74,9 @@ namespace jadel
         return left;
     }
 
-
     inline bool operator==(Vec2 left, Vec2 right)
     {
-        bool result = (left.x == right.x && left.y == right.y);
+        bool result = (compareFloat(left.x, right.x) && compareFloat(left.y, right.y));
         return result;
     }
 

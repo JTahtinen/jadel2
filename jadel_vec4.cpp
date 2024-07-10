@@ -44,6 +44,12 @@ namespace jadel
         return result;
     }
 
+    Vec4 Vec4::div(float val) const
+    {
+        Vec4 result(x / val, y / val, z / val, w / val);
+        return result;
+    }
+
     float Vec4::length() const
     {
         float result = sqrtf(x * x + y * y + z * z + w * w);

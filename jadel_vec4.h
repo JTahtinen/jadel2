@@ -1,12 +1,20 @@
 #pragma once
 #include "jadel_defs.h"
 #include "jadel_vec3.h"
+#include "jadel_math.h"
 
 namespace jadel
 {
     struct DECLSPEC Vec4
     {
-        float x, y, z, w;
+        union
+        {
+            struct
+            {
+                float x, y, z, w;
+            }; 
+            float elements[4];
+        };
 
         Vec4(float x, float y, float z, float w);
         Vec4(float value);
@@ -15,6 +23,7 @@ namespace jadel
         Vec4 add(Vec4 v1) const;
         Vec4 subst(Vec4 v1) const;
         Vec4 mul(float val) const;
+        Vec4 div(float val) const;
         float length() const;
         Vec4 normalize() const;
     };
@@ -36,6 +45,12 @@ namespace jadel
         Vec4 result = left.mul(right);
         return result;
     }
+    
+    inline Vec4 operator/(Vec4 left, float right)
+    {
+        Vec4 result = left.div(right);
+        return result;
+    }
 
     inline Vec4 &operator+=(Vec4 &left, Vec4 right)
     {
@@ -55,9 +70,15 @@ namespace jadel
         return left;
     }
 
+    inline Vec4 &operator/=(Vec4& left, float val)
+    {
+        left = left.div(val);
+        return left;
+    }
+
     inline bool operator==(Vec4 left, Vec4 right)
     {
-        bool result = (left.x == right.x && left.y == right.y && left.z == right.z && left.w == right.w);
+        bool result = (compareFloat(left.x, right.x) && compareFloat(left.y, right.y) && compareFloat(left.z, right.z) && compareFloat(left.w, right.w));
         return result;
     }
 

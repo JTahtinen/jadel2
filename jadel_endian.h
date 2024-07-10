@@ -11,15 +11,15 @@ namespace jadel
 
     extern DECLSPEC Endianness endianness;
 
-    extern uint32 ALPHA_MASK;
-    extern uint32 RED_MASK;
-    extern uint32 GREEN_MASK;
-    extern uint32 BLUE_MASK;
+    extern DECLSPEC uint32 ALPHA_MASK;
+    extern DECLSPEC uint32 RED_MASK;
+    extern DECLSPEC uint32 GREEN_MASK;
+    extern DECLSPEC uint32 BLUE_MASK;
 
-    extern uint32 ALPHA_SHIFT;
-    extern uint32 RED_SHIFT;
-    extern uint32 GREEN_SHIFT;
-    extern uint32 BLUE_SHIFT;
+    extern DECLSPEC uint32 ALPHA_SHIFT;
+    extern DECLSPEC uint32 RED_SHIFT;
+    extern DECLSPEC uint32 GREEN_SHIFT;
+    extern DECLSPEC uint32 BLUE_SHIFT;
 
     void determineEndianness();
 

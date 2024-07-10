@@ -2,159 +2,73 @@
 
 #include <stddef.h>
 #include "jadel_defs.h"
-#include "jadel_vec2.h"
-#include "jadel_vec3.h"
-#include "jadel_mat3.h"
+#include "jadel_util.h"
+
+
+#define SQRT2 (1.4142135624)
+
+#define JADEL_CLAMP_MIN(val, min) \
+    ((val) < (min) ? (min) : (val))
+
+#define JADEL_CLAMP_MAX(val, max) \
+    ((val) > (max) ? (max) : (val))
 
 #define JADEL_CLAMP(val, min, max) \
-(val >= min ? (val <= max ? val : max) : min)
+    ((val) >= (min) ? ((val) <= (max) ? (val) : (max)) : (min))
+
+/*
+    min inclusive, max exclusive.
+*/
+#define JADEL_IS_VAL_BETWEEN(val, min, max) \
+    (((val) >= (min)) && ((val) < (max)))
 
 namespace jadel
 {
+    //**** DECLARATIONS **** //
 
-    struct Point2i
+    float square(float val);
+
+    float clampf(float val, float min, float max);
+
+    float lerp(float v0, float v1, float val);
+
+    int roundToInt(float val);
+
+    int absInt(int val);
+
+    float absFloat(float val);
+
+    bool compareFloat(float f0, float f1, float epsilon);
+
+    bool compareFloat(float f0, float f1);
+
+    //********************************************//
+
+    //**** DEFINITIONS ****//
+
+
+    inline float square(float val)
     {
-        int x;
-        int y;
-
-        Point2i operator+(Point2i other) const
-        {
-            Point2i result = {x + other.x, y + other.y};
-            return result;
-        }
-
-        Point2i operator-(Point2i other) const
-        {
-            Point2i result = {x - other.x, y - other.y};
-            return result;
-        }
-
-        Point2i &operator+=(Point2i other)
-        {
-            *this = {x + other.x, y + other.y};
-            return *this;
-        }
-
-        Point2i operator-=(Point2i other)
-        {
-            *this = {x - other.x, y - other.y};
-            return *this;
-        }
-
-        bool operator==(Point2i other) const
-        {
-            bool result = (this->x == other.x && this->y == other.y);
-            return result;
-        }
-
-        bool operator!=(Point2i other) const
-        {
-            bool result = !(*this == other);
-            return result;
-        }
-    };
-
-    struct Recti
-    {
-        int x0;
-        int y0;
-        int x1;
-        int y1;
-
-        Recti(int x0, int y0, int x1, int y1)
-            : x0(x0), y0(y0), x1(x1), y1(y1)
-        {
-        }
-        
-        Recti(Point2i a, Point2i b)
-            : Recti(a.x, a.y, b.x, b.y)
-        {
-        }
-
-        Recti()
-            : Recti(0, 0, 0, 0)
-        {
-        }
-
-        Point2i getPointA() const
-        {
-            return {x0, y0};
-        }
-
-        Point2i getPointB() const
-        {
-            return {x1, y1};
-        }
-
-    };
-
-    struct Rectf
-    {
-        float x0;
-        float y0;
-        float x1;
-        float y1;
-
-        Rectf(float x0, float y0, float x1, float y1)
-            : x0(x0), y0(y0), x1(x1), y1(y1)
-        {
-        }
-
-        Rectf(Vec2 p0, Vec2 p1)
-            : Rectf(p0.x, p0.y, p1.x, p1.y)
-        {
-        }
-
-        Rectf()
-        {
-        }
-
-        Vec2 getPoint0() const
-        {
-            Vec2 result(x0, y0);
-            return result;
-        }
-
-        Vec2 getPoint1() const
-        {
-            Vec2 result(x1, y1);
-            return result;
-        }
-    };
-
-    inline float clampf(float val, float min, float max)
-    {
-        float result;
-        if (val < min)
-            result = min;
-        else if (val > max)
-            result = max;
-        else
-            result = val;
+        float result = val * val;
         return result;
     }
 
-    inline float lerp(float v0, float v1, float val)
+    inline float clampf(float val, float min, float max)
     {
-        float result = v0 + (v1 - v0) * val;
+        float result = JADEL_CLAMP(val, min, max);
+        return result;
+    }
+
+    inline float lerp(float v0, float v1, float factor)
+    {
+        float result = v0 + (v1 - v0) * factor;
         return result;
     }
 
     inline int roundToInt(float val)
     {
-        int result = val > 0 ? (int)(val + 0.5f) : (int)(val - 0.5f);
+        int result = val >= 0.0f ? (int)(val + 0.5f) : (int)(val - 0.5f);
         return result;
-    }
-
-    inline void flipBytes(void *buffer, size_t numBytes)
-    {
-        uint8 *pointer = (uint8 *)buffer;
-        for (size_t i = 0; i < numBytes / 2; ++i)
-        {
-            uint8 startByte = *(pointer + i);
-            *(pointer + i) = *(pointer + numBytes - 1 - i);
-            *(pointer + numBytes - 1 - i) = startByte;
-        }
     }
 
     inline int absInt(int val)
@@ -165,7 +79,19 @@ namespace jadel
 
     inline float absFloat(float val)
     {
-        float result = val < 0 ? -val : val;
+        float result = val < 0.0f ? -val : val;
+        return result;
+    }
+
+    inline bool compareFloat(float f0, float f1, float epsilon)
+    {
+        bool result = absFloat(f1 - f0) < epsilon;
+        return result;
+    }
+
+    inline bool compareFloat(float f0, float f1)
+    {
+        bool result = compareFloat(f0, f1, 0.001f);
         return result;
     }
 }

@@ -13,4 +13,5 @@ namespace jadel
     };
 
     extern DECLSPEC bool loadPNG(const char *filepath, Surface *target);
+    void imageLoadInit();
 }

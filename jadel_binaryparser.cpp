@@ -1,5 +1,5 @@
 #include "jadel_binaryparser.h"
-#include "jadel_math.h"
+#include "jadel_util.h"
 
 namespace jadel
 {

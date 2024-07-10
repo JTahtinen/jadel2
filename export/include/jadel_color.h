@@ -1,6 +1,7 @@
 #pragma once
 #include "jadel_math.h"
 #include "jadel_defs.h"
+#include "jadel_endian.h"
 
 namespace jadel
 {
@@ -35,6 +36,29 @@ namespace jadel
         static uint32 addToU32(uint32 foreground, uint32 background);
         static uint32 addToU32(uint32 foreground, Color background);
     };
+
+    inline uint32 colorBlend(uint32 foreground, uint32 background)
+    {
+        uint32 aF = (foreground >> ALPHA_SHIFT) & 0xff;
+        uint32 rF = (foreground >> RED_SHIFT) & 0xff;
+        uint32 gF = (foreground >> GREEN_SHIFT) & 0xff;
+        uint32 bF = (foreground >> BLUE_SHIFT) & 0xff;
+
+        uint32 aB = (background >> ALPHA_SHIFT) & 0xff;
+        uint32 rB = (background >> RED_SHIFT) & 0xff;
+        uint32 gB = (background >> GREEN_SHIFT) & 0xff;
+        uint32 bB = (background >> BLUE_SHIFT) & 0xff;
+
+        float alphaFactor = 1.0f - ((float)aF / 255.0f);
+
+        uint32 a = roundToInt(lerp((float)aF, (float)aB, alphaFactor));
+        uint32 r = roundToInt(lerp((float)rF, (float)rB, alphaFactor));
+        uint32 g = roundToInt(lerp((float)gF, (float)gB, alphaFactor));
+        uint32 b = roundToInt(lerp((float)bF, (float)bB, alphaFactor));
+
+        uint32 result = (a << ALPHA_SHIFT ) | (r << RED_SHIFT) | (g << GREEN_SHIFT ) | (b << BLUE_SHIFT);
+        return result;
+    }
 
     inline Color operator+(Color left, Color right)
     {

@@ -12,10 +12,13 @@ namespace jadel
         BITMAPINFO bitmapInfo;
         int width;
         int height;
+        float aspect;
         // Surface winSurface;
     };
 
-    DECLSPEC bool windowCreate(Window *target, const char *title, size_t width, size_t height);
-    DECLSPEC void windowUpdate(Window *win, const Surface *buffer);
-    void windowUpdateSize(Window* win);
+    DECLSPEC bool windowCreate(Window *target, const char *title, int width, int height);
+    DECLSPEC void windowUpdate(Window *target, const Surface *buffer);
+    DECLSPEC bool windowSetSize(Window *target, int width, int height);
+    void windowUpdateSize(Window *target);
+    void windowMaintainAspect(Window *target);
 }

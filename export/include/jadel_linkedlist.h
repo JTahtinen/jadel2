@@ -1,6 +1,5 @@
 #pragma once
 
-#include "jadel_defs.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -18,32 +17,45 @@ namespace jadel
         {
         }
 
-        void insertNext(Node<T> &node)
+        void insertNext(const T &data)
         {
-            Node<T> *newPrev = this;
-            Node<T> *newNext;
-            if (next)
-                newNext = next->next;
-            else
-                newNext = NULL;
-
-            node.prev = newPrev;
-            node.next = newNext;
-            this->next = &node;
+            Node<T> *node = createNode(data);
+            node->prev = this;
+            node->next = this->next;
+            this->next = node;
         }
 
-        void insertPrev(Node<T> &node)
+        void insertPrev(const T &data)
         {
-            Node<T> *newNext = this;
-            Node<T> *newPrev;
-            if (prev)
-                newPrev = prev->prev;
-            else
-                newPrev = NULL;
-
-            node.prev = newPrev;
-            node.next = newNext;
+            Node<T> *node = createNode(data);
+            node->next = this;
+            node->prev = this->prev;
             this->prev = node;
+        }
+
+        void remove()
+        {
+            if (this->prev)
+            {
+                this->prev->next = this->next;
+            }
+            if (this->next)
+            {
+                this->next->prev = this->prev;
+            }
+
+            this->prev = NULL;
+            this->next = NULL;
+            free(this);
+        }
+
+        static Node<T> *createNode(const T &data)
+        {
+            Node<T> *result = (Node<T> *)malloc(sizeof(Node<T>));
+            result->data = data;
+            result->prev = NULL;
+            result->next = NULL;
+            return result;
         }
     };
 
@@ -59,24 +71,21 @@ namespace jadel
 
         LinkedList(const T &data)
         {
-            head = createNode(data);
+            head = Node<T>::createNode(data);
         }
 
-        T *getHead()
+        Node<T> *getHead() const
         {
-            if (!head)
-                return NULL;
-            T *result = &head->data;
-            return result;
+            return head;
         }
 
-        void append(Node<T> *node)
+        void append(const T &data)
         {
+            Node<T> *newNode = Node<T>::createNode(data);
+
             if (!head)
             {
-                head = node;
-                head->prev = NULL;
-                head->next = NULL;
+                head = newNode;
                 return;
             }
             Node<T> *current = head;
@@ -84,152 +93,20 @@ namespace jadel
             {
                 current = current->next;
             }
-            current->next = node;
-            node->prev = current;
-        }
-
-        void append(const T &data)
-        {
-            Node<T> *newNode = createNode(data);
-            append(newNode);
-        }
-
-        void prepend(Node<T> *node)
-        {
-            if (!head)
-            {
-                head = node;
-                head->prev = NULL;
-                head->next = NULL;
-                return;
-            }
-
-            head->prev = node;
-            node->next = head;
-            head = node;
+            current->insertNext(data);
         }
 
         void prepend(const T &data)
         {
             Node<T> *newNode = createNode(data);
-            prepend(newNode);
-        }
-
-        bool insertNext(size_t index, Node<T> *node)
-        {
-            Node<T> *current = head;
-            size_t i = 0;
-            while (i < index)
-            {
-                current = current->next;
-                if (!current)
-                    return false;
-                ++i;
-            }
-            if (!current)
-                return false;
-            current->insertNext(*node);
-            return true;
-        }
-
-        bool insertNext(size_t index, const T &data)
-        {
-            Node<T> *newNode = createNode(data);
-            bool result = insertNext(index, newNode);
-            return result;
-        }
-
-        bool deleteWithValue(const T &value)
-        {
             if (!head)
-                return false;
-            Node<T> *current = head;
-            while (current->data != value)
             {
-                if (!current->next)
-                    return false;
-                current = current->next;
+                head = newNode;
+                head->prev = NULL;
+                head->next = NULL;
+                return;
             }
-            if (current == head)
-                head = current->next;
-            else
-            {
-                current->prev->next = current->next;
-                if (current->next)
-                    current->next->prev = current->prev;
-            }
-            free(current);
-            return true;
-        }
-
-        bool deleteByIndex(size_t index)
-        {
-            if (!head)
-                return false;
-            Node<T> *current = head;
-            for (size_t i = 0; i < index; ++i)
-            {
-                current = current->next;
-                if (!current)
-                    return false;
-            }
-            if (current == head)
-            {
-                head = current->next;
-                free(current);
-                return true;
-            }
-            current->prev->next = current->next;
-            if (current->next)
-            {
-                current->next->prev = current->prev;
-            }
-            free(current);
-            return true;
-        }
-
-        T *get(size_t index)
-        {
-            if (!head)
-                return NULL;
-            Node<T> *current = head;
-            for (int i = 0; i < index; ++i)
-            {
-                if (current->next)
-                    current = current->next;
-                else
-                {
-                    return NULL;
-                }
-            }
-            return &current->data;
-        }
-
-        T *getByValue(const T &value)
-        {
-            T *currentData = getHead();
-            size_t i = 0;
-            while (*currentData != value)
-            {
-                currentData = get(++i);
-                if (!currentData)
-                    return NULL;
-            }
-            return currentData;
-        }
-
-        static Node<T> *createNode(const T &data)
-        {
-            Node<T> *result = (Node<T> *)malloc(sizeof(Node<T>));
-            result->prev = NULL;
-            result->next = NULL;
-            result->data = data;
-            return result;
-        }
-
-        Node<T>& getNextNode(Node<T>& node)
-        {
-            return node->next;
+            head->insertPrev(data);
         }
     };
 }

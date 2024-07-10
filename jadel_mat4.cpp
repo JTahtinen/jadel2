@@ -1,9 +1,10 @@
 #include "jadel_mat4.h"
+#include "jadel_defs.h"
 #include <memory.h>
 
 #define GET_FROM(mat, col, row) ((mat).elements[col + row * 4])
-#define GET(col, row) (GET_FROM(*this, col, row))
-#define OTHER_GET(col, row) (GET_FROM(other, col, row))
+#define GET(col, row) GET_FROM(*this, col, row)
+#define OTHER_GET(col, row) GET_FROM(other, col, row)
 
 namespace jadel
 {
@@ -34,7 +35,6 @@ namespace jadel
 
     Mat4 Mat4::mul(Mat4 other) const
     {
-
         Mat4 result;
         for (int row = 0; row < 4; ++row)
         {

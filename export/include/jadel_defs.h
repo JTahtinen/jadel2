@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+
+#define JADEL_EXPAND_MACRO( x ) x
+
 #ifdef JADEL_EXPORT
     #define DECLSPEC __declspec(dllexport)
 #else
@@ -17,4 +20,3 @@ typedef uint8_t uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
 typedef uint64_t uint64;
-

@@ -1,11 +1,20 @@
 #pragma once
 #include "jadel_defs.h"
+#include "jadel_vec2.h"
+#include "jadel_math.h"
 
 namespace jadel
 {
     struct DECLSPEC Vec3
     {
-        float x, y, z;
+        union
+        {
+            struct
+            {
+                float x, y, z;
+            };
+            float elements[3];
+        };
 
         Vec3(float x, float y, float z);
         Vec3();
@@ -15,6 +24,12 @@ namespace jadel
         Vec3 cross(Vec3 other) const;
         float length() const;
         Vec3 normalize() const;
+
+        inline operator Vec2() const
+        {
+            Vec2 result(this->x, this->y);
+            return result;
+        }
     };
 
     inline Vec3 operator+(Vec3 left, Vec3 right)
@@ -67,7 +82,7 @@ namespace jadel
 
     inline bool operator==(Vec3 left, Vec3 right)
     {
-        bool result = (left.x == right.x && left.y == right.y && left.z == right.z);
+        bool result = (compareFloat(left.x, right.x) && compareFloat(left.y, right.y) && compareFloat(left.z, right.z));
         return result;
     }
 

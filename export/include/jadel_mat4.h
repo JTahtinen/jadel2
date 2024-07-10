@@ -25,7 +25,7 @@ namespace jadel
         return result;
     }
 
-    inline Mat4 &operator*=(Mat4& left, Mat4 right)
+    inline Mat4 &operator*=(Mat4 &left, Mat4 right)
     {
         left = left.mul(right);
         return left;
@@ -33,19 +33,80 @@ namespace jadel
 
     inline Vec4 operator*(Mat4 left, Vec4 right)
     {
-        Vec4 result = left.mul(right);
+        Vec4 result;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                result.elements[i] += left.elements[4 * i + j] * right.elements[j];
+            }
+        }
         return result;
     }
 
     inline Vec3 operator*(Mat4 left, Vec3 right)
     {
-        Vec3 result = left.mul(right);
+        Vec4 intermediate(right.x, right.y, right.z, 1);
+        intermediate = left * intermediate;
+        Vec3 result(intermediate.x, intermediate.y, intermediate.z); 
         return result;
     }
 
-    inline Vec2 operator*(Mat4 left, Vec2 other)
+    inline Vec2 operator*(Mat4 left, Vec2 right)
     {
-        Vec2 result = left.mul(other);
+        Vec4 intermediate(right.x, right.y, 1, 1);
+        intermediate = left * intermediate;
+        Vec2 result(intermediate.x, intermediate.y); 
         return result;
     }
+
+    inline Vec4 operator*(Vec4 left, Mat4 right)
+    {
+        Vec4 result;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                result.elements[i] += left.elements[j] * right.elements[4 * j + i];
+            }
+        }
+        return result;
+    }
+
+    inline Vec3 operator*(Vec3 left, Mat4 right)
+    {
+        Vec4 intermediate(left.x, left.y, left.z, 1.0f);
+        intermediate = intermediate * right;
+        Vec3 result(intermediate.x, intermediate.y, intermediate.z);
+        return result;
+    }
+
+    inline Vec2 operator*(Vec2 left, Mat4 right)
+    {
+        Vec4 intermediate(left.x, left.y, 1.0f, 1.0f);
+        intermediate = intermediate * right;
+        Vec2 result(intermediate.x, intermediate.y);
+        return result;
+    }
+
+    inline Vec4 &operator*=(Vec4 &left, Mat4 right)
+    {
+        left = left * right;
+        return left;
+    }
+
+    inline Vec3 &operator*=(Vec3 &left, Mat4 right)
+    {
+        left = left * right;
+        return left;
+    }
+
+    inline Vec2 &operator*=(Vec2 &left, Mat4 right)
+    {
+        left = left * right;
+        return left;
+    }
+
 }

@@ -65,7 +65,6 @@ namespace jadel
 
     DECLSPEC void inputUpdate();
 
-
     void inputReset();
 
     extern bool inputKeysPressed[jadel::NUM_KEYS - 1];

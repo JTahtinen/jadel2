@@ -2,8 +2,10 @@
 *.obj
 *.dll
 *.exp
+*.ilk
 *.lib
 *.pdb
 *.o
 *.png
+exclude
 CMakeLists.txt
