@@ -6,6 +6,4 @@
 *.pdb
 *.o
 *.png
-*.ilk
-exclude
 CMakeLists.txt
