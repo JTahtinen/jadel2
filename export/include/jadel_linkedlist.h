@@ -22,6 +22,10 @@ namespace jadel
             Node<T> *node = createNode(data);
             node->prev = this;
             node->next = this->next;
+            if (this->next)
+            {
+                this->next->prev = node;
+            }
             this->next = node;
         }
 
@@ -30,6 +34,10 @@ namespace jadel
             Node<T> *node = createNode(data);
             node->next = this;
             node->prev = this->prev;
+            if (this->prev)
+            {
+                this->prev->next = node;
+            }
             this->prev = node;
         }
 
@@ -81,10 +89,9 @@ namespace jadel
 
         void append(const T &data)
         {
-            Node<T> *newNode = Node<T>::createNode(data);
-
             if (!head)
             {
+                Node<T> *newNode = Node<T>::createNode(data);
                 head = newNode;
                 return;
             }
@@ -98,12 +105,10 @@ namespace jadel
 
         void prepend(const T &data)
         {
-            Node<T> *newNode = createNode(data);
             if (!head)
             {
+                Node<T> *newNode = createNode(data);
                 head = newNode;
-                head->prev = NULL;
-                head->next = NULL;
                 return;
             }
             head->insertPrev(data);

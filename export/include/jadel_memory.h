@@ -24,6 +24,25 @@ namespace jadel
     extern DECLSPEC size_t memoryGetNumAllocatedBytes();
     extern DECLSPEC size_t memoryGetFreeBytes();
 
+#ifdef DEBUG
+    struct MemoryBlockDebugData
+    {
+        void *pointer;
+        ptrdiff_t pointerOffset;
+        size_t size;
+    };
+    
+    struct MemoryDebugData
+    {
+        void *memoryPool;
+        size_t memoryPoolSize;
+        int numAllocations;
+        MemoryBlockDebugData blockData[1000];
+    };
+
+    extern DECLSPEC MemoryDebugData memoryGetDebugData();
+#endif
+
     template <typename T, typename... Args>
     T *memoryNew(Args... args)
     {
@@ -32,7 +51,7 @@ namespace jadel
         {
             return NULL;
         }
-        T *result = new(block) T(args); 
+        T *result = new (block) T(args);
         return result;
     }
     template <typename T, typename... Args>
@@ -43,7 +62,7 @@ namespace jadel
         {
             return NULL;
         }
-        T* result = new(block) T[arrayLength];
+        T *result = new (block) T[arrayLength];
         return result;
     }
 
