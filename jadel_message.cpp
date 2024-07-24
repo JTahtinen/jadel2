@@ -13,8 +13,9 @@ namespace jadel
         va_list ap; /* points to each unnamed arg in turn */
         const char *p, *sval;
         int ival;
-        size_t zdval;
         double dval;
+        void *pval;
+        size_t zdval;
         va_start(ap, content); /* make ap point to 1st unnamed arg */
         memset(jadelMessageStringBuffer, 0, JADEL_MESSAGE_STRING_BUFFER_SIZE);
         for (p = content; *p; p++)
@@ -43,6 +44,11 @@ namespace jadel
             case 'f':
                 dval = va_arg(ap, double);
                 snprintf(jadelMessageStringBuffer, JADEL_MESSAGE_STRING_BUFFER_SIZE, "%f", dval);
+                writeToConsole(jadelMessageStringBuffer, strlen(jadelMessageStringBuffer));
+                break;
+            case 'p':
+                pval = va_arg(ap, void*);
+                snprintf(jadelMessageStringBuffer, JADEL_MESSAGE_STRING_BUFFER_SIZE, "%p", pval);
                 writeToConsole(jadelMessageStringBuffer, strlen(jadelMessageStringBuffer));
                 break;
             case 's':
