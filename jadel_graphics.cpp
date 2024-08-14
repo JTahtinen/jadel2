@@ -9,11 +9,18 @@
 #include <memory.h>
 
 #define IF_FALSE_DESTROY_RETURN_FALSE(value) \
-{if (!value) {destroy(); return false;}}
+    {                                        \
+        if (!value)                          \
+        {                                    \
+            destroy();                       \
+            return false;                    \
+        }                                    \
+    }
 
 namespace jadel
 {
-    static Surface nullSurface {0};
+    static Surface nullSurface{0};
+
     void graphicsInit()
     {
         if (endianness == LITTLE_ENDIAN)
@@ -57,7 +64,7 @@ namespace jadel
     }
 
     Graphics::Graphics()
-        :defaultSurface(nullSurface)
+        : defaultSurface(nullSurface)
     {
     }
 
@@ -79,7 +86,9 @@ namespace jadel
     bool Graphics::pushTargetSurface(Surface *target)
     {
         if (!target || targetSurfaceStack.size() == JADEL_GRAPHICS_TARGET_SURFACE_STACK_SIZE)
+        {
             return false;
+        }
         TargetSurface t;
         t.surface = target;
         t.width = target->width;
@@ -90,6 +99,8 @@ namespace jadel
         targetSurfaceStack.push(t);
         targetSurface = &targetSurfaceStack.top();
         targetSurfaceData = target;
+        this->targetSurface->clippingPlaneStack.init(30);
+        pushClippingPlane(Rectf(-1.0f, -1.0f, 1.0f, 1.0f));
         return true;
     }
 
@@ -97,6 +108,7 @@ namespace jadel
     {
         if (targetSurfaceStack.size() > 1)
         {
+            targetSurface->clippingPlaneStack.destroy();
             targetSurfaceStack.pop();
             targetSurface = &targetSurfaceStack.top();
             targetSurfaceData = targetSurface->surface;
@@ -308,5 +320,19 @@ namespace jadel
     {
         bool result = flags & flag ? true : false;
         return result;
+    }
+
+    void Graphics::pushClippingPlane(Rectf clippingPlane)
+    {
+        this->targetSurface->clippingPlaneStack.push(clippingPlane);
+    }
+
+    void Graphics::popClippingPlane()
+    {
+        if (this->targetSurface->clippingPlaneStack.size() == 1)
+        {
+            return;
+        }
+        this->targetSurface->clippingPlaneStack.pop();
     }
 }

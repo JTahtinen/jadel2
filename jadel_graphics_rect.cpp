@@ -2,6 +2,24 @@
 
 namespace jadel
 {
+
+    static Rectf clipRectf(Rectf rect, Rectf clippingPlane)
+    {
+        Rectf result;
+        result.x0 = rect.x0 < clippingPlane.x0 ? clippingPlane.x0 : rect.x0;
+        result.x1 = rect.x1 > clippingPlane.x1 ? clippingPlane.x1 : rect.x1;
+        result.y0 = rect.y0 < clippingPlane.y0 ? clippingPlane.y0 : rect.y0;
+        result.y1 = rect.y1 > clippingPlane.y1 ? clippingPlane.y1 : rect.y1;
+        return result;
+    }
+
+    static bool isRectfVisible(Rectf rect, Rectf clippingPlane)
+    {
+        bool result = (rect.x0 < clippingPlane.x1 && rect.x1 > clippingPlane.x0
+                    && rect.y0 < clippingPlane.y1 && rect.y1 > clippingPlane.y0);
+        return result;
+    }
+
     void Graphics::drawRectFast(int xStart, int xEnd, int yStart, int yEnd, Color color)
     {
         for (int y = yStart; y < yEnd; ++y)
@@ -56,14 +74,19 @@ namespace jadel
     }
 
     void Graphics::drawRectRelative(float xStart, float yStart, float xEnd, float yEnd, Color color)
-    {
-        Recti rect = getPixelRecti({xStart, yStart, xEnd, yEnd});
-        drawRect(rect, color);
+    {   
+        drawRectRelative(jadel::Rectf(xStart, yStart, xEnd, yEnd), color);
     }
 
     void Graphics::drawRectRelative(Rectf rect, Color color)
     {
-        drawRectRelative(rect.x0, rect.y0, rect.x1, rect.y1, color);
+        if (!isRectfVisible(rect, this->targetSurface->clippingPlaneStack.top()))
+        {
+            return;
+        }
+        jadel::Rectf clippedRelativeRect = clipRectf(rect, this->targetSurface->clippingPlaneStack.top());
+        Recti recti = getPixelRecti({clippedRelativeRect.x0, clippedRelativeRect.y0, clippedRelativeRect.x1, clippedRelativeRect.y1});
+        drawRect(recti, color);
     }
 
     bool graphicsValidateAndModifyRectDimensions(int *x0, int *y0, int *x1, int *y1, Graphics *graphics)
