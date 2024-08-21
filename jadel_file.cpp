@@ -70,7 +70,7 @@ namespace jadel
 
     bool BinaryFile::init(size_t size)
     {
-        void *data = (jadel::memoryReserve(size));
+        void *data = (jadel::memoryAllocate(size));
         return init(data, size, BINARY_FILE_INIT_EMPTY);
     }
 
@@ -79,7 +79,7 @@ namespace jadel
         size_t expectedFileSize = getBinaryFileSize(filepath);
         if (expectedFileSize == 0)
             return false;
-        void *data = jadel::memoryReserve(expectedFileSize);
+        void *data = jadel::memoryAllocate(expectedFileSize);
         size_t fileSize;
         if (!readBinaryFile(filepath, data, expectedFileSize, &fileSize))
         {

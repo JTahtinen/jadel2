@@ -18,7 +18,7 @@ namespace jadel
                     : size(0)
                     , capacity(capacity)
                 {
-                    data = (T *)memoryReserve(sizeof(T) * capacity);
+                    data = (T *)memoryAllocate(sizeof(T) * capacity);
                 }
 
                 Vector()
@@ -39,7 +39,7 @@ namespace jadel
 
         bool init(size_t capacity)
         {
-            m_data = (T *)jadel::memoryReserve(sizeof(T) * capacity);
+            m_data = (T *)jadel::memoryAllocate(sizeof(T) * capacity);
             if (!m_data)
             {
                 return false;
@@ -116,7 +116,7 @@ namespace jadel
         {
             if (newCap == m_capacity)
                 return true;
-            T *newData = (T *)jadel::memoryReserve(sizeof(T) * newCap);
+            T *newData = (T *)jadel::memoryAllocate(sizeof(T) * newCap);
             if (!newData)
                 return false;
             memmove(newData, m_data, m_size * sizeof(T));

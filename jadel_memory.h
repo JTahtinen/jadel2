@@ -3,7 +3,7 @@
 #include "jadel_defs.h"
 #define JADEL_GET_MALLOC_MACRO(_1, _2, NAME, ...) NAME
 
-#define JADEL_MALLOC_2(type, elementCount) (type *)jadel::memoryReserve(elementCount * sizeof(type))
+#define JADEL_MALLOC_2(type, elementCount) (type *)jadel::memoryAllocate(elementCount * sizeof(type))
 #define JADEL_MALLOC_1(type) JADEL_MALLOC_2(type, 1)
 #define JADEL_MALLOC(...) JADEL_EXPAND_MACRO(JADEL_GET_MALLOC_MACRO(__VA_ARGS__, JADEL_MALLOC_2, JADEL_MALLOC_1)(__VA_ARGS__))
 
@@ -15,7 +15,7 @@ namespace jadel
 #define GB(n) MB((n) * 1024)
 
     extern DECLSPEC bool memoryInit(size_t bytes);
-    extern DECLSPEC void *memoryReserve(size_t bytes);
+    extern DECLSPEC void *memoryAllocate(size_t bytes);
     extern DECLSPEC bool memoryFree(void *block);
     extern DECLSPEC void memoryPrintDebugData();
 
@@ -46,7 +46,7 @@ namespace jadel
     template <typename T, typename... Args>
     T *memoryNew(Args... args)
     {
-        void *block = jadel::memoryReserve(sizeof(T));
+        void *block = jadel::memoryAllocate(sizeof(T));
         if (!block)
         {
             return NULL;
@@ -57,7 +57,7 @@ namespace jadel
     template <typename T, typename... Args>
     T *memoryNewArray(size_t arrayLength)
     {
-        void block = jadel::memoryReserve(arrayLength * sizeof(T));
+        void block = jadel::memoryAllocate(arrayLength * sizeof(T));
         if (!block)
         {
             return NULL;

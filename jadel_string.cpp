@@ -15,7 +15,7 @@ namespace jadel
             return;
         }
         size_t len = strlen(content);
-        this->content = (char *)jadel::memoryReserve(len + 1);
+        this->content = (char *)jadel::memoryAllocate(len + 1);
         memmove(this->content, content, len);
         this->size = len;
         this->content[this->size] = 0;
@@ -67,7 +67,7 @@ namespace jadel
         //else
         //{
         //    string->isSmallString = false;
-            string->content = (char *)jadel::memoryReserve(length + 1);
+            string->content = (char *)jadel::memoryAllocate(length + 1);
             string->content[length] = '\0';
         //}
         string->size = length;
@@ -98,7 +98,7 @@ namespace jadel
         size_t len = strlen(content);
         if (len > this->size)
         {
-            char* newContent = (char*)jadel::memoryReserve(len + 1); 
+            char* newContent = (char*)jadel::memoryAllocate(len + 1); 
             if (!newContent) return false;
             jadel::memoryFree(this->content);
             this->content = newContent;

@@ -143,7 +143,6 @@ namespace jadel
         if (!memoryPool)
         {
             JADEL_DEBUGMSG("[ERROR] Could not init memory pool!\n");
-            // jadel::message("[ERROR] Could not init memory pool!\n");
             return false;
         }
         memoryPoolSize = bytes;
@@ -151,7 +150,7 @@ namespace jadel
         return true;
     }
 
-    void *memoryReserve(size_t bytes)
+    void *memoryAllocate(size_t bytes)
     {
         int offsetFromAlignment = bytes % 4;
         int requiredAlignment = offsetFromAlignment > 0 ? 4 - offsetFromAlignment : 0;
@@ -176,8 +175,9 @@ namespace jadel
                 insertToAllocationList(allocationPointer, finalBytes);
                 return allocationPointer;
             }
+            blockNode = blockNode->next;
         }
-        JADEL_DEBUGMSG("[ERROR] Could not reserve %zd bytes!", bytes);
+        JADEL_DEBUGMSG("[ERROR] Could not reserve %zd bytes!\n", bytes);
         return NULL;
     }
 

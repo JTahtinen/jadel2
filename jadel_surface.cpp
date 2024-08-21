@@ -13,7 +13,7 @@ namespace jadel
         target->width = width;
         target->height = height;
         //target->pixels = JADEL_MALLOC(uint32, width * height);
-        target->pixels = (uint32*)jadel::memoryReserve(width * height * sizeof(uint32));
+        target->pixels = (uint32*)jadel::memoryAllocate(width * height * sizeof(uint32));
         if (!target->pixels)
         {
             return false;
