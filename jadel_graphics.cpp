@@ -324,7 +324,20 @@ namespace jadel
 
     void Graphics::pushClippingPlane(Rectf clippingPlane)
     {
-        this->targetSurface->clippingPlaneStack.push(clippingPlane);
+        Rectf finalClippingPlane;
+        if (this->targetSurface->clippingPlaneStack.size() > 0)
+        {
+            Rectf topPlane = this->targetSurface->clippingPlaneStack.top();
+            finalClippingPlane.x0 = JADEL_CLAMP_MIN(clippingPlane.x0, topPlane.x0);
+            finalClippingPlane.y0 = JADEL_CLAMP_MIN(clippingPlane.y0, topPlane.y0);
+            finalClippingPlane.x1 = JADEL_CLAMP_MAX(clippingPlane.x1, topPlane.x1);
+            finalClippingPlane.y1 = JADEL_CLAMP_MAX(clippingPlane.y1, topPlane.y1);
+        }
+        else
+        {
+            finalClippingPlane = clippingPlane;
+        }
+        this->targetSurface->clippingPlaneStack.push(finalClippingPlane);
     }
 
     void Graphics::popClippingPlane()

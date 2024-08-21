@@ -101,7 +101,7 @@ namespace jadel
         
         void blitRelative(const Surface *source, Rectf targetRectRelative);
         
-        bool blitEqualSizeSurface(const Surface *source);
+        //bool blitEqualSizeSurface(const Surface *source);
 
         void fill(uint32 color);
         
