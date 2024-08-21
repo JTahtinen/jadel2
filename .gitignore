@@ -7,5 +7,6 @@
 *.pdb
 *.o
 *.png
+export/lib
 exclude
 CMakeLists.txt
