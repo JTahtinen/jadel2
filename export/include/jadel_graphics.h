@@ -29,6 +29,7 @@ namespace jadel
         int halfWidth;
         int halfHeight;
         Recti rect;
+        Stack<Rectf> clippingPlaneStack;
     };
 
     struct DECLSPEC Graphics
@@ -39,7 +40,7 @@ namespace jadel
         uint32 flags;
         Stack<TargetSurface> targetSurfaceStack;
         uint32 clearColor;
-
+        
         Graphics();
 
         bool init();
@@ -100,7 +101,7 @@ namespace jadel
         
         void blitRelative(const Surface *source, Rectf targetRectRelative);
         
-        bool blitEqualSizeSurface(const Surface *source);
+        //bool blitEqualSizeSurface(const Surface *source);
 
         void fill(uint32 color);
         
@@ -129,6 +130,10 @@ namespace jadel
         void clearFlags();
 
         bool hasFlag(uint32 flag) const;
+
+        void pushClippingPlane(Rectf clippingPlane);
+
+        void popClippingPlane();
     };
 
     extern DECLSPEC uint32 graphicsCreateColor(uint8 a, uint8 r, uint8 g, uint8 b);

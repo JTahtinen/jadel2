@@ -22,13 +22,13 @@ namespace jadel
             {
                 return false;
             }
-            _data = (T *)memoryReserve(size * sizeof(T));
+            _data = (T *)memoryAllocate(size * sizeof(T));
             if (!_data)
             {
                 return false;
             }
             _numReserved = 0;
-            _freeIndices = (bool *)memoryReserve(size * sizeof(bool));
+            _freeIndices = (bool *)memoryAllocate(size * sizeof(bool));
             if (!_freeIndices)
             {
                 memoryFree(_data);

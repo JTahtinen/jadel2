@@ -119,7 +119,7 @@ namespace jadel
         if (!fp)
             return false;
         size_t fileSize = getFileSize(fp) + 1; // Null terminator
-        char *data = (char *)jadel::memoryReserve(fileSize);
+        char *data = (char *)jadel::memoryAllocate(fileSize);
         if (!data)
             return false;
         bool result = readTextFile(filepath, data, fileSize, numCharacters);

@@ -16,7 +16,7 @@ namespace jadel
         Array(size_t capacity)
             : capacity(capacity), size(0)
         {
-            data = (T *)jadel::memoryReserve(sizeof(T) * capacity);
+            data = (T *)jadel::memoryAllocate(sizeof(T) * capacity);
         }
 
         Array()

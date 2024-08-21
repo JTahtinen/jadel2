@@ -19,7 +19,7 @@ namespace jadel
 
         bool init(size_t cap)
         {
-            m_data = (T*)memoryReserve(cap * sizeof(T));
+            m_data = (T*)memoryAllocate(cap * sizeof(T));
             if (!m_data)
             {
                 return false;
@@ -72,7 +72,7 @@ namespace jadel
 
         bool resize(size_t cap)
         {
-            T* newData = (T*)memoryReserve(cap * sizeof(T));
+            T* newData = (T*)memoryAllocate(cap * sizeof(T));
             if (!newData)
             {
                 return false;
