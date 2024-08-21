@@ -477,18 +477,18 @@ namespace jadel
 
     void Graphics::blit(const Surface *source)
     {
-        if (!this->hasFlag(JADEL_GRAPHICS_BLIT_FILTER_BILINEAR) && blitEqualSizeSurface(source))
+        /*if (!this->hasFlag(JADEL_GRAPHICS_BLIT_FILTER_BILINEAR) && blitEqualSizeSurface(source))
         {
             return;
-        }
+        }*/
         blitRelative(source, Rectf(-1.0f, -1.0f, 1.0f, 1.0f));
     }
 
-    bool Graphics::blitEqualSizeSurface(const Surface *source)
+/*    bool Graphics::blitEqualSizeSurface(const Surface *source)
     {
         if (source->width != targetSurface->width || source->height != targetSurface->height)
             return false;
         bool result = memcpy(targetSurfaceData->pixels, source->pixels, source->width * source->height * 4);
         return result != NULL;
-    }
+    }*/
 }
