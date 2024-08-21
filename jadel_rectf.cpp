@@ -9,6 +9,7 @@ namespace jadel
     Rectf::Rectf(float x0, float y0, float x1, float y1)
         : x0(x0), y0(y0), x1(x1), y1(y1)
     {
+        this->orderLowToHigh();
     }
 
     Rectf::Rectf(Vec2 p0, Vec2 p1)
