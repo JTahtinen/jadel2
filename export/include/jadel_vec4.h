@@ -1,6 +1,7 @@
 #pragma once
 #include "jadel_defs.h"
 #include "jadel_vec3.h"
+#include "jadel_vec2.h"
 #include "jadel_math.h"
 
 namespace jadel
@@ -19,13 +20,23 @@ namespace jadel
         Vec4(float x, float y, float z, float w);
         Vec4(float value);
         Vec4();
-        Vec4(Vec3 vec);
+        Vec4(Vec3 vec, float w);
         Vec4 add(Vec4 v1) const;
         Vec4 subst(Vec4 v1) const;
         Vec4 mul(float val) const;
         Vec4 div(float val) const;
         float length() const;
         Vec4 normalize() const;
+        inline operator Vec3() const
+        {
+            Vec3 result(this->x, this->y, this->z);
+            return result;
+        }
+        inline operator Vec2() const
+        {
+            Vec2 result(this->x, this->y);
+            return result;
+        }
     };
 
     inline Vec4 operator+(Vec4 left, Vec4 right)

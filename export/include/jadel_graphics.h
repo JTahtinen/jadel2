@@ -117,6 +117,8 @@ namespace jadel
 
         void clearTargetSurface();
         
+        Vec2 getPixelCoordFromRelativeCoord(Vec2 relativeCoord) const;
+
         Recti getPixelRecti(Rectf relativeRect) const;
 
         Rectf getPixelRectf(Rectf relativeRect) const;

@@ -18,10 +18,12 @@ namespace jadel
 
         Vec3(float x, float y, float z);
         Vec3();
+        Vec3(Vec2 vec, float z);
         Vec3 add(Vec3 v1) const;
         Vec3 subst(Vec3 v1) const;
         Vec3 mul(float val) const;
         Vec3 cross(Vec3 other) const;
+        float dot(Vec3 other) const;
         float length() const;
         Vec3 normalize() const;
 

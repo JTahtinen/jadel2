@@ -54,7 +54,7 @@ namespace jadel
     }
 
     inline Vec2 operator*(Mat4 left, Vec2 right)
-    {
+    {   
         Vec4 intermediate(right.x, right.y, 1, 1);
         intermediate = left * intermediate;
         Vec2 result(intermediate.x, intermediate.y); 
