@@ -6,12 +6,31 @@
 #include "jadel_vec2.h"
 #include "jadel_vec3.h"
 #include "jadel_mat3.h"
+#include "jadel_mat4.h"
 
 namespace jadel
 {
     inline Rectf operator*(Mat3 left, Rectf right)
     {
         Rectf result(left * right.getPointA(), left * right.getPointB());
+        return result;
+    }
+
+    inline Rectf operator*(Mat4 left, Rectf right)
+    {
+        Rectf result(left * right.getPointA(), left * right.getPointB());
+        return result;
+    }
+
+    inline Rectf operator*(Rectf left, Mat3 right)
+    {
+        Rectf result(left.getPointA() * right, left.getPointB() * right);
+        return result;
+    }
+
+    inline Rectf operator*(Rectf left, Mat4 right)
+    {
+        Rectf result(left.getPointA() * right, left.getPointB() * right);
         return result;
     }
 
@@ -56,7 +75,7 @@ namespace jadel
 
     //********************************************//
 
-        //**** pointfWithinRectf ****//
+    //**** pointfWithinRectf ****//
     inline bool pointfWithinRectf(float x, float y, float xStart, float yStart, float xEnd, float yEnd)
     {
         bool result = (JADEL_IS_VAL_BETWEEN(x, xStart, xEnd) &&
