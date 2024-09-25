@@ -3,6 +3,8 @@
 #include "jadel_util.h"
 #include "jadel_endian.h"
 #include "jadel_math_geometry.h"
+#include "jadel_message.h"
+#include "jadel_assert.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <xmmintrin.h>
@@ -16,6 +18,9 @@
             return false;                    \
         }                                    \
     }
+
+#define GET_PIXEL_COORD_FROM_RELATIVE_COORD(x, y) \
+    Point2i((int)((float)targetSurface->halfWidth + x * (float)targetSurface->halfWidth), (int)((float)targetSurface->halfHeight + y * (float)targetSurface->halfHeight))
 
 namespace jadel
 {
@@ -87,6 +92,7 @@ namespace jadel
     {
         if (!target || targetSurfaceStack.size() == JADEL_GRAPHICS_TARGET_SURFACE_STACK_SIZE)
         {
+            JADEL_DEBUGMSG("Graphics: Tried to push NULL target surface\n");
             return false;
         }
         TargetSurface t;
@@ -117,6 +123,48 @@ namespace jadel
 
     void Graphics::drawLineRelative(float xStart, float yStart, float xEnd, float yEnd, Color color)
     {
+        // Point2i pixelStart = getPointiRelativeToCenterInRecti(xStart, yStart, Recti(0, 0, targetSurface->width, targetSurface->height));
+        // Point2i pixelEnd = getPointiRelativeToCenterInRecti(xEnd, yEnd, Recti(0, 0, targetSurface->width, targetSurface->height));
+        Point2i pixelStart = GET_PIXEL_COORD_FROM_RELATIVE_COORD(xStart, yStart);
+        Point2i pixelEnd = GET_PIXEL_COORD_FROM_RELATIVE_COORD(xEnd, yEnd);
+
+        int dx = absInt(pixelEnd.x - pixelStart.x);
+        int dy = absInt(pixelEnd.y - pixelStart.y);
+        bool slope = dy > dx;
+
+        if (slope)
+        {
+            JADEL_SWAP(pixelStart.x, pixelStart.y);
+            JADEL_SWAP(pixelEnd.x, pixelEnd.y);
+        }
+
+        if (pixelStart.x > pixelEnd.x)
+        {
+            JADEL_SWAP(pixelStart.x, pixelEnd.x);
+            JADEL_SWAP(pixelStart.y, pixelEnd.y);
+        }
+
+        dx = absInt(pixelEnd.x - pixelStart.x);
+        dy = absInt(pixelEnd.y - pixelStart.y);
+        int error = dx / 2;
+        int y = pixelStart.y;
+        int yStep = pixelStart.y < pixelEnd.y ? 1 : -1;
+
+        for (int x = pixelStart.x; x < pixelEnd.x; ++x)
+        {
+            Point2i coord = slope ? Point2i(y, x) : Point2i(x, y);
+            drawPixelFast(coord.x, coord.y, color);
+            error -= dy;
+            if (error < 0)
+            {
+                y += yStep;
+                error += dx;
+            }
+        }
+    }
+
+    /*void Graphics::drawLineRelative(float xStart, float yStart, float xEnd, float yEnd, Color color)
+    {
         Point2i start = getPointiRelativeToCenterInRecti(xStart, yStart, targetSurface->rect);
         Point2i end = getPointiRelativeToCenterInRecti(xEnd, yEnd, targetSurface->rect);
 
@@ -139,23 +187,23 @@ namespace jadel
             xEndPixel = start.x;
         }
 
-        if (xEndPixel < 0)
-            return;
-        if (xStartPixel >= targetSurface->width)
-            return;
-        if (end.y < 0)
-            return;
-        if (start.y >= targetSurface->height)
-            return;
+                if (xEndPixel < 0)
+                    return;
+                if (xStartPixel >= targetSurface->width)
+                    return;
+                if (end.y < 0)
+                    return;
+                if (start.y >= targetSurface->height)
+                    return;
 
-        if (xEndPixel > targetSurface->width)
-            xEndPixel = targetSurface->width;
-        if (xStartPixel < 0)
-            xStartPixel = 0;
-        if (end.y > targetSurface->height)
-            end.y = targetSurface->height;
-        if (start.y < 0)
-            start.y = 0;
+                if (xEndPixel > targetSurface->width)
+                    xEndPixel = targetSurface->width;
+                if (xStartPixel < 0)
+                    xStartPixel = 0;
+                if (end.y > targetSurface->height)
+                    end.y = targetSurface->height;
+                if (start.y < 0)
+                    start.y = 0;
 
         if (start.y == end.y)
         {
@@ -190,7 +238,7 @@ namespace jadel
             }
         }
     }
-
+*/
     void Graphics::drawLineRelative(Vec2 start, Vec2 end, Color color)
     {
         drawLineRelative(start.x, start.y, end.x, end.y, color);
@@ -269,6 +317,12 @@ namespace jadel
         fill(clearColor);
     }
 
+    Vec2 Graphics::getPixelCoordFromRelativeCoord(Vec2 relativeCoord) const
+    {
+        Vec2 result = getPointfRelativeToCenterInRecti(relativeCoord, targetSurface->rect);
+        return result;
+    }
+
     Recti Graphics::getPixelRecti(Rectf relativeRect) const
     {
         Recti result(getPointiRelativeToCenterInRecti(relativeRect.getPointA(), targetSurface->rect),
@@ -282,6 +336,7 @@ namespace jadel
                      getPointfRelativeToCenterInRecti(relativeRect.getPointB(), targetSurface->rect));
         return result;
     }
+
 
     uint32 graphicsCreateColor(uint8 a, uint8 r, uint8 g, uint8 b)
     {
