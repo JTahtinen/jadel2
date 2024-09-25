@@ -58,7 +58,7 @@ namespace jadel
         {
             for (int j = 0; j < 3; ++j)
             {
-                result.elements[i] += left.elements[j] * right.elements[4 * j + i];
+                result.elements[i] += left.elements[j] * right.elements[3 * j + i];
             }
         }
         return result;
