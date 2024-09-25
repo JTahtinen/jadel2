@@ -11,7 +11,12 @@ namespace jadel
         {
         }
 
-        T &operator*() const
+        T &operator*()
+        {
+            return *pointer;
+        }
+
+        const T &operator*() const
         {
             return *pointer;
         }
@@ -21,7 +26,18 @@ namespace jadel
             return pointer;
         }
 
+        const T *operator->() const
+        {
+            return pointer;
+        }
+
         Iterator &operator++()
+        {
+            pointer++;
+            return *this;
+        }
+
+        Iterator &operator++() const
         {
             pointer++;
             return *this;
@@ -34,13 +50,20 @@ namespace jadel
             return tmp;
         }
 
-        bool operator==(const Iterator other)
+        Iterator operator++(int) const
+        {
+            Iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        bool operator==(const Iterator other) const
         {
             bool result = (this->pointer == other.pointer);
             return result;
         }
 
-        bool operator!=(const Iterator other)
+        bool operator!=(const Iterator other) const
         {
             bool result = !(*this == other);
             return result;
