@@ -147,6 +147,16 @@ namespace jadel
         {
             return Iterator<T>(&m_data[m_size]);
         }
+
+        Iterator<T> begin() const
+        {
+            return Iterator<T>(&m_data[0]);
+        }
+
+        Iterator<T> end() const
+        {
+            return Iterator<T>(&m_data[m_size]);
+        }
     };
 
 }
