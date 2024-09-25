@@ -21,8 +21,8 @@ namespace jadel
     {
     }
 
-    Vec4::Vec4(Vec3 vec)
-        : Vec4(vec.x, vec.y, vec.z, 1.0f)
+    Vec4::Vec4(Vec3 vec, float w)
+        : Vec4(vec.x, vec.y, vec.z, w)
     {
     }
         
