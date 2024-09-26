@@ -245,10 +245,7 @@ namespace jadel
         inputMouseDeltaY = inputMouseY - inputMouseYPrevious;
         if (inputRelativeMouseMode && inputCurrentWindow)
         {
-            if (inputRelativeMouseMode)
-            {
-                SetCursorPos(inputRelativeMouseCursorPos.x, inputRelativeMouseCursorPos.y);
-            }
+            SetCursorPos(inputRelativeMouseCursorPos.x, inputRelativeMouseCursorPos.y);
             inputMouseX = windowHalfW;
             inputMouseY = windowHalfH;
         }
